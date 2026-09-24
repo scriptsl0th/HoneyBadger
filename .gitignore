@@ -1,0 +1,61 @@
+# --- Environment / secrets ---
+# Local env override — contains real credentials. NEVER commit.
+# The template (.env.example) stays tracked.
+.env
+!.env.example
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+build/
+dist/
+.venv/
+venv/
+env/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.mypy/
+*.prof
+
+# --- Node / dashboard ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.local
+.vite/
+dist/
+
+# --- Honeypot artifacts ---
+# Never tracked: staged payload files (noexec quarantine).
+quarantine/
+*.payload
+*.mmdb
+
+# --- Logs ---
+*.log
+logs/
+
+# --- IDE / editor ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# --- OS ---
+.DS_Store
+Desktop.ini

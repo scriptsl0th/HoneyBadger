@@ -1,0 +1,39 @@
+# Keep image builds small and keep secrets out of layers.
+
+# VCS
+.git
+.gitignore
+
+# Secrets — never bake .env into an image
+.env
+!.env.example
+
+# Local Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.coverage
+htmlcov/
+
+# Node / frontend build artifacts
+node_modules/
+.vite/
+dist/
+
+# Honeypot artifacts
+quarantine/
+*.payload
+*.mmdb
+
+# Logs & IDE
+*.log
+logs/
+.vscode/
+.idea/
+.DS_Store
+Desktop.ini
