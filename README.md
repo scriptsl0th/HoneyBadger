@@ -263,7 +263,7 @@ HoneyBadger/
 ## Quick start
 
 ```bash
-git clone https://github.com/yourusername/honeybadger.git
+git clone https://github.com/scriptsl0th/HoneyBadger.git
 cd honeybadger
 
 # 1. Configure (optional — defaults are fine for a first run)

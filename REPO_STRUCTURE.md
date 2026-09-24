@@ -128,7 +128,7 @@ sshd.py / httpd.py
 
 ```bash
 # Clone
-git clone https://github.com/yourusername/honeybadger.git
+git clone https://github.com/scriptsl0th/HoneyBadger.git
 cd honeybadger
 
 # Local development
