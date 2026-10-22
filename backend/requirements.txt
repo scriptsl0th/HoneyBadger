@@ -1,3 +1,4 @@
 pydantic>=2
 pydantic-settings>=2
 asyncssh>=2.14
+aiohttp>=3.10

@@ -4,6 +4,7 @@ import asyncio
 import contextlib
 import logging
 
+from api import EventStore, start_api_server
 from bus import EventBus
 from config import get_settings
 from schemas import RawEvent
@@ -20,13 +21,19 @@ async def console_sink(event: RawEvent) -> None:
 async def run() -> None:
     settings = get_settings()
 
+    store = EventStore()
     bus: EventBus[RawEvent] = EventBus("raw")
+    bus.subscribe(store.record)
     bus.subscribe(console_sink)
     await bus.start()
 
+    api_runner = await start_api_server(settings, store)
     server = await start_ssh_server(settings, bus)
     logger.info(
         "SSH honeypot listening on %s:%s", settings.ssh_host, settings.ssh_port
+    )
+    logger.info(
+        "API + WebSocket listening on %s:%s", settings.api_host, settings.api_port
     )
 
     try:
@@ -35,6 +42,7 @@ async def run() -> None:
         server.close()
         with contextlib.suppress(Exception):
             await server.wait_closed()
+        await api_runner.cleanup()
         await bus.stop()
 
 
