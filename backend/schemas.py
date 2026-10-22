@@ -5,6 +5,8 @@ import re
 import datetime as dt
 from enum import Enum
 
+SSH_HANDSHAKE_KIND = "ssh_handshake"
+
 
 class Service(Enum):
     """Enum for the different services."""
@@ -73,7 +75,7 @@ class RawEvent(pydantic.BaseModel):
 
     @pydantic.model_validator(mode="after")
     def validate_login_requirement(self) -> "RawEvent":
-        if self.service is Service.SSH:
+        if self.service is Service.SSH and not self._is_handshake_event():
             if (
                 self.login_info is None
                 or not self.login_info.username
@@ -83,6 +85,11 @@ class RawEvent(pydantic.BaseModel):
                     "SSH events require login_info with username and password_hash"
                 )
         return self
+
+    def _is_handshake_event(self) -> bool:
+        if self.additional_info is None:
+            return False
+        return self.additional_info.get("event_kind") == SSH_HANDSHAKE_KIND
 
 
 class EnrichedEvent(RawEvent):

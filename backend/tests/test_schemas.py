@@ -3,7 +3,7 @@ import datetime as dt
 import pytest
 from pydantic import ValidationError
 
-from schemas import EnrichedEvent, RawEvent, Service
+from schemas import SSH_HANDSHAKE_KIND, EnrichedEvent, RawEvent, Service
 
 UTC = dt.timezone.utc
 TS = dt.datetime(2026, 6, 6, 12, 0, 0, tzinfo=UTC)
@@ -61,6 +61,20 @@ def test_ssh_event_with_partial_login_rejected():
 def test_http_event_without_login_accepted():
     event = make_raw(service=Service.HTTP, destination_port=80, login_info=None)
     assert event.login_info is None
+
+
+def test_ssh_handshake_event_without_login_accepted():
+    event = make_raw(
+        login_info=None,
+        additional_info={"event_kind": SSH_HANDSHAKE_KIND, "banner": "SSH-2.0-x"},
+    )
+    assert event.login_info is None
+    assert event.additional_info["event_kind"] == SSH_HANDSHAKE_KIND
+
+
+def test_ssh_event_with_unknown_kind_still_requires_login():
+    with pytest.raises(ValidationError):
+        make_raw(login_info=None, additional_info={"event_kind": "auth"})
 
 
 def test_naive_timestamp_rejected():
