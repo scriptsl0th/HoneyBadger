@@ -21,10 +21,10 @@ describe("severity", () => {
   });
 
   it("uses the console colour tokens", () => {
-    expect(SEVERITY_COLORS.low).toBe("#38bdf8");
-    expect(SEVERITY_COLORS.medium).toBe("#f59e0b");
-    expect(SEVERITY_COLORS.high).toBe("#f97316");
-    expect(SEVERITY_COLORS.critical).toBe("#ef4444");
+    expect(SEVERITY_COLORS.low).toBe("#7ba39a");
+    expect(SEVERITY_COLORS.medium).toBe("#d9a441");
+    expect(SEVERITY_COLORS.high).toBe("#d1794d");
+    expect(SEVERITY_COLORS.critical).toBe("#cb4b43");
     expect(severityColor(null)).toBe(COLORS.muted);
   });
 

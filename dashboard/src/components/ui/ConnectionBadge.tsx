@@ -2,23 +2,23 @@ import type { LiveStatus } from "../../ws/client";
 
 const LABELS: Record<LiveStatus, string> = {
   live: "LIVE",
-  reconnecting: "RECONNECTING",
-  connecting: "RECONNECTING",
+  reconnecting: "RECONNECT",
+  connecting: "CONNECTING",
   polling: "POLLING",
 };
 
-const STYLES: Record<LiveStatus, string> = {
-  live: "border-[#22c55e]/40 bg-[#22c55e]/10 text-[#86efac]",
-  reconnecting: "border-[#f59e0b]/40 bg-[#f59e0b]/10 text-[#fcd34d]",
-  connecting: "border-[#f59e0b]/40 bg-[#f59e0b]/10 text-[#fcd34d]",
-  polling: "border-[#38bdf8]/40 bg-[#38bdf8]/10 text-[#7dd3fc]",
+const LED: Record<LiveStatus, string> = {
+  live: "bg-[#93ae79]",
+  reconnecting: "bg-[#d9a441]",
+  connecting: "bg-[#d9a441]",
+  polling: "bg-[#86a6bd]",
 };
 
-const DOTS: Record<LiveStatus, string> = {
-  live: "bg-[#22c55e] shadow-[0_0_8px_#22c55e]",
-  reconnecting: "bg-[#f59e0b] shadow-[0_0_8px_#f59e0b]",
-  connecting: "bg-[#f59e0b] shadow-[0_0_8px_#f59e0b]",
-  polling: "bg-[#38bdf8] shadow-[0_0_8px_#38bdf8]",
+const TEXT: Record<LiveStatus, string> = {
+  live: "text-console-live",
+  reconnecting: "text-console-accent",
+  connecting: "text-console-accent",
+  polling: "text-[#a3c0d3]",
 };
 
 interface ConnectionBadgeProps {
@@ -45,17 +45,23 @@ export function ConnectionBadge({
       role="status"
       aria-live="polite"
       title={title}
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-semibold tracking-[0.12em] ${STYLES[status]} ${className}`}
+      className={`inline-flex items-center gap-1.5 border border-console-border bg-console-panel px-2 py-1.5 ${className}`}
     >
       <span
         aria-hidden="true"
-        className={`size-1.5 rounded-full ${DOTS[status]} ${
+        className={`size-1.5 ${LED[status]} ${
           status === "live" ? "animate-pulse-soft motion-reduce:animate-none" : ""
         }`}
       />
-      {label}
+      <span
+        className={`font-mono text-[9px] leading-none font-medium tracking-[0.12em] ${TEXT[status]}`}
+      >
+        {label}
+      </span>
       {status !== "live" && attempt > 0 && (
-        <span className="font-mono text-[9px] opacity-70">#{attempt}</span>
+        <span className="font-mono text-[9px] leading-none text-console-faint">
+          #{attempt}
+        </span>
       )}
     </span>
   );

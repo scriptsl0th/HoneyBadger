@@ -1,8 +1,5 @@
 import type { Severity } from "../../types";
-import {
-  SEVERITY_LABELS,
-  severityColor,
-} from "../../lib/severity";
+import { SEVERITY_LABELS, severityColor, severityTextColor } from "../../lib/severity";
 
 interface SeverityDotProps {
   severity: Severity | null | undefined;
@@ -25,16 +22,13 @@ export function SeverityDot({
     >
       <span
         aria-hidden="true"
-        className="size-2 shrink-0 rounded-full"
-        style={{
-          backgroundColor: color,
-          boxShadow: `0 0 7px ${color}80`,
-        }}
+        className="size-1.5 shrink-0"
+        style={{ backgroundColor: color }}
       />
       {showLabel && (
         <span
-          className="text-[10px] font-semibold tracking-[0.08em] uppercase"
-          style={{ color }}
+          className="font-mono text-[9px] font-medium tracking-[0.08em] uppercase"
+          style={{ color: severityTextColor(severity) }}
         >
           {label}
         </span>

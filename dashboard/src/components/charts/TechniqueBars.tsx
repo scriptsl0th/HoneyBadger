@@ -1,31 +1,9 @@
 import { useMemo } from "react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  LabelList,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 import type { TechniqueCount } from "../../types";
-import { COLORS } from "../../lib/colors";
-import { techniqueLabel, techniqueShortLabel } from "../../lib/techniques";
+import { techniqueLabel } from "../../lib/techniques";
+import { compactNumber } from "../../lib/format";
 import { Panel } from "../layout/Panel";
-import { Badge } from "../ui/Badge";
 import { Skeleton } from "../ui/Skeleton";
-
-const TECHNIQUE_COLORS = [
-  "#38bdf8",
-  "#8b5cf6",
-  "#f59e0b",
-  "#f97316",
-  "#ef4444",
-  "#06b6d4",
-  "#22c55e",
-];
 
 interface TechniqueBarsProps {
   techniques: TechniqueCount[] | null;
@@ -36,38 +14,6 @@ interface TechniqueBarsProps {
   onSelectTechnique: (technique: string) => void;
 }
 
-interface Datum {
-  id: string;
-  short: string;
-  name: string;
-  count: number;
-  color: string;
-}
-
-interface TooltipEntry {
-  payload?: Datum;
-}
-
-interface TechniqueTooltipProps {
-  active?: boolean;
-  payload?: TooltipEntry[];
-}
-
-function TechniqueTooltip({ active, payload }: TechniqueTooltipProps) {
-  const datum = payload?.[0]?.payload;
-  if (!active || !datum) return null;
-  return (
-    <div className="rounded-lg border border-console-border bg-[#0b1322]/95 px-3 py-2 shadow-xl">
-      <div className="font-mono text-[10px] text-console-muted">{datum.id}</div>
-      <div className="text-xs font-medium text-console-text">{datum.name}</div>
-      <div className="mt-0.5 text-[10px] text-console-muted">
-        <span className="font-mono text-console-text">{datum.count}</span> events · click
-        to filter
-      </div>
-    </div>
-  );
-}
-
 export function TechniqueBars({
   techniques,
   loading,
@@ -76,37 +22,36 @@ export function TechniqueBars({
   selectedTechnique,
   onSelectTechnique,
 }: TechniqueBarsProps) {
-  const data: Datum[] = useMemo(
+  const data = useMemo(
     () =>
-      [...(techniques ?? [])]
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 7)
-        .map((item, index) => ({
-          id: item.technique_id,
-          short: techniqueShortLabel(item.technique_id),
-          name: techniqueLabel(item.technique_id),
-          count: item.count,
-          color: TECHNIQUE_COLORS[index % TECHNIQUE_COLORS.length],
-        })),
+      [...(techniques ?? [])].sort((a, b) => b.count - a.count).slice(0, 7),
     [techniques],
   );
 
-  const total = data.reduce((sum, item) => sum + item.count, 0);
+  const total = (techniques ?? []).reduce((sum, item) => sum + item.count, 0);
+  const max = Math.max(1, ...data.map((item) => item.count));
   const empty = !loading && !error && total === 0;
 
   return (
     <Panel
-      title="ATT&CK techniques"
-      subtitle={selectedTechnique === "all" ? "Top 7 · click to filter feed" : "Filtering feed by technique"}
+      index="02.2"
+      title="ATT&CK coverage"
+      subtitle={
+        selectedTechnique === "all"
+          ? "Classified volume · select a row to filter the feed"
+          : `Feed filtered to ${selectedTechnique}`
+      }
       loading={loading}
       error={error}
       onRetry={onRetry}
       empty={empty}
       emptyState={
         <div className="flex h-[196px] flex-col items-center justify-center gap-1.5 text-center">
-          <span className="text-sm font-medium text-console-text">No techniques yet</span>
-          <span className="max-w-[240px] text-xs text-console-muted">
-            Classified events will appear here once attacks arrive.
+          <span className="font-mono text-[10px] tracking-[0.16em] text-console-faint uppercase">
+            No classifications
+          </span>
+          <span className="max-w-[240px] text-[11px] text-console-muted">
+            Events will appear here as they are tagged against ATT&amp;CK.
           </span>
         </div>
       }
@@ -115,90 +60,87 @@ export function TechniqueBars({
           <button
             type="button"
             onClick={() => onSelectTechnique("all")}
-            className="rounded border border-console-border bg-white/[0.03] px-2 py-0.5 text-[10px] text-console-muted transition-colors hover:text-console-text focus-visible:outline-2 focus-visible:outline-[#38bdf8]"
+            className="border border-console-border px-1.5 py-0.5 font-mono text-[9px] tracking-[0.06em] text-console-muted uppercase transition-colors hover:border-console-border-strong hover:text-console-text"
           >
-            Clear filter
+            Clear
           </button>
         ) : (
-          <Badge tone="neutral">Top 7</Badge>
+          <span className="font-mono text-[9px] tracking-[0.1em] text-console-faint">
+            TOP 7
+          </span>
         )
       }
-      bodyClassName="px-2 pt-2 pb-2"
+      bodyClassName="p-0"
     >
       {loading ? (
-        <div className="space-y-2 px-2 py-2" aria-hidden="true">
+        <div className="space-y-2 p-3" aria-hidden="true">
           {Array.from({ length: 7 }, (_, index) => (
             <div key={index} className="flex items-center gap-2">
-              <Skeleton className="h-2.5 w-20" />
-              <Skeleton className="h-4 flex-1" />
+              <Skeleton className="h-2.5 w-12" />
+              <Skeleton className="h-3 flex-1" />
             </div>
           ))}
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={Math.max(204, data.length * 27 + 12)}>
-          <BarChart
-            data={data}
-            layout="vertical"
-            margin={{ top: 2, right: 30, bottom: 2, left: 2 }}
-            barCategoryGap={5}
-          >
-            <CartesianGrid
-              horizontal={false}
-              stroke={COLORS.grid}
-              strokeOpacity={0.5}
-              strokeDasharray="3 4"
-            />
-            <XAxis type="number" hide domain={[0, "dataMax"]} />
-            <YAxis
-              type="category"
-              dataKey="short"
-              width={112}
-              tick={{ fill: COLORS.muted, fontSize: 10 }}
-              tickLine={false}
-              axisLine={false}
-            />
-            <Tooltip
-              cursor={{ fill: "rgba(255,255,255,0.03)" }}
-              content={<TechniqueTooltip />}
-            />
-            <Bar
-              dataKey="count"
-              radius={[0, 4, 4, 0]}
-              barSize={13}
-              isAnimationActive={false}
-              className="cursor-pointer"
-              onClick={(entry: unknown) => {
-                const record = entry as Partial<Datum> & { payload?: Datum };
-                const datum =
-                  record.payload ?? (record.id ? (record as Datum) : undefined);
-                if (datum?.id) {
-                  onSelectTechnique(
-                    selectedTechnique === datum.id ? "all" : datum.id,
-                  );
-                }
-              }}
-            >
-              {data.map((item) => (
-                <Cell
-                  key={item.id}
-                  fill={item.color}
-                  fillOpacity={
-                    selectedTechnique === "all" || selectedTechnique === item.id
-                      ? 0.92
-                      : 0.28
+        <ol className="divide-y divide-console-border/60">
+          {data.map((item) => {
+            const selected = selectedTechnique === item.technique_id;
+            const share = total > 0 ? (item.count / total) * 100 : 0;
+            return (
+              <li key={item.technique_id}>
+                <button
+                  type="button"
+                  onClick={() =>
+                    onSelectTechnique(
+                      selected ? "all" : item.technique_id,
+                    )
                   }
-                />
-              ))}
-              <LabelList
-                dataKey="count"
-                position="right"
-                fill={COLORS.muted}
-                fontSize={9}
-                fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
-              />
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+                  aria-pressed={selected}
+                  className={[
+                    "group grid w-full grid-cols-[52px_minmax(0,1fr)_44px] items-center gap-x-2 border-l-2 px-2 py-1.5 text-left transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-console-accent",
+                    selected
+                      ? "border-console-accent bg-console-panel-2"
+                      : "border-transparent hover:bg-white/[0.025]",
+                  ].join(" ")}
+                >
+                  <span
+                    className={`font-mono text-[9px] leading-none tracking-[0.02em] ${
+                      selected ? "text-console-accent" : "text-console-faint"
+                    }`}
+                  >
+                    {item.technique_id}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-[10px] leading-tight text-console-muted group-hover:text-console-text">
+                      {techniqueLabel(item.technique_id)}
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      className="mt-1 block h-[3px] w-full bg-console-bg"
+                    >
+                      <span
+                        className={`block h-full ${
+                          selected
+                            ? "bg-console-accent"
+                            : "bg-console-accent/55 group-hover:bg-console-accent/80"
+                        }`}
+                        style={{ width: `${Math.max(3, (item.count / max) * 100)}%` }}
+                      />
+                    </span>
+                  </span>
+                  <span className="text-right">
+                    <span className="block font-mono text-[10px] leading-none text-console-text tabular-nums">
+                      {compactNumber(item.count)}
+                    </span>
+                    <span className="mt-0.5 block font-mono text-[8.5px] leading-none text-console-faint tabular-nums">
+                      {share.toFixed(1)}%
+                    </span>
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ol>
       )}
     </Panel>
   );

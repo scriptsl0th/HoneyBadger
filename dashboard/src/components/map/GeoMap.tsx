@@ -121,7 +121,7 @@ export function GeoMap({
           ip: source.source_ip,
           x: point[0],
           y: point[1],
-          radius: 3 + Math.sqrt(source.count / max) * 10,
+          radius: 2.6 + Math.sqrt(source.count / max) * 8,
           color: severity
             ? severityColor(severity)
             : meta?.service
@@ -154,10 +154,11 @@ export function GeoMap({
 
   return (
     <Panel
+      index="03.1"
       title="Attack origins"
       subtitle={
         sources
-          ? `${bubbles.length} geolocated sources · bubble size = events`
+          ? `${bubbles.length} geolocated sources · area = event volume`
           : "Geolocation of attacking sources"
       }
       loading={loading}
@@ -166,10 +167,10 @@ export function GeoMap({
       empty={empty}
       emptyState={
         <div className="flex h-[300px] flex-col items-center justify-center gap-1.5 text-center">
-          <span className="text-sm font-medium text-console-text">
+          <span className="font-mono text-[10px] tracking-[0.16em] text-console-faint uppercase">
             No geolocated sources
           </span>
-          <span className="max-w-xs text-xs text-console-muted">
+          <span className="max-w-xs text-[11px] text-console-muted">
             Top sources in this window have no latitude/longitude enrichment.
           </span>
         </div>
@@ -178,17 +179,19 @@ export function GeoMap({
         <div className="flex items-center gap-2.5" aria-label="Severity legend">
           {(
             [
+              ["low", COLORS.low],
+              ["med", COLORS.medium],
               ["high", COLORS.high],
-              ["critical", COLORS.critical],
-              ["medium", COLORS.medium],
+              ["crit", COLORS.critical],
             ] as const
           ).map(([label, color]) => (
             <span
               key={label}
-              className="inline-flex items-center gap-1 text-[9px] tracking-wide text-console-muted uppercase"
+              className="inline-flex items-center gap-1 font-mono text-[8.5px] tracking-[0.08em] text-console-faint uppercase"
             >
               <span
-                className="size-1.5 rounded-full"
+                aria-hidden="true"
+                className="size-1.5"
                 style={{ backgroundColor: color }}
               />
               {label}
@@ -196,50 +199,43 @@ export function GeoMap({
           ))}
         </div>
       }
-      bodyClassName="relative flex items-center p-0"
+      bodyClassName="flex flex-col p-0"
       className="h-full"
     >
-      <div className="relative w-full">
+      <div className="relative w-full flex-1">
         <svg
           viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-          className="h-auto w-full"
+          className="h-full w-full"
           role="img"
           aria-label={`World map with ${bubbles.length} attack origin bubbles`}
           onMouseLeave={() => setHover(null)}
         >
-          <defs>
-            <radialGradient id="ocean-glow" cx="50%" cy="42%" r="62%">
-              <stop offset="0%" stopColor="#13223b" stopOpacity={0.82} />
-              <stop offset="100%" stopColor="#0c1526" stopOpacity={0.92} />
-            </radialGradient>
-          </defs>
-
-          <path d={spherePath} fill="url(#ocean-glow)" />
+          <path d={spherePath} fill={COLORS.ocean} />
           <path
             d={graticulePath}
             fill="none"
             stroke={COLORS.border}
             strokeWidth={0.5}
-            strokeOpacity={0.4}
+            strokeOpacity={0.55}
           />
 
           {countryPaths.map((d, index) => (
             <path
               key={index}
               d={d}
-              fill="#101b2e"
-              stroke="#263656"
-              strokeWidth={0.45}
-              strokeOpacity={0.9}
+              fill={COLORS.land}
+              stroke={COLORS.landStroke}
+              strokeWidth={0.4}
+              strokeOpacity={0.85}
             />
           ))}
 
           <path
             d={spherePath}
             fill="none"
-            stroke="#2b3d60"
+            stroke={COLORS.borderStrong}
             strokeWidth={0.8}
-            strokeOpacity={0.6}
+            strokeOpacity={0.9}
           />
 
           {bubbles.map((bubble) => (
@@ -247,44 +243,34 @@ export function GeoMap({
               <circle
                 cx={bubble.x}
                 cy={bubble.y}
-                r={bubble.radius + 4}
+                r={bubble.radius + 3}
                 fill={bubble.color}
-                fillOpacity={0.1}
-                className={
-                  bubble.severity === "critical"
-                    ? "animate-pulse-soft motion-reduce:animate-none"
-                    : undefined
-                }
+                fillOpacity={0.08}
               />
               <circle
                 cx={bubble.x}
                 cy={bubble.y}
                 r={bubble.radius}
                 fill={bubble.color}
-                fillOpacity={0.7}
+                fillOpacity={0.42}
                 stroke={bubble.color}
                 strokeWidth={1}
-                strokeOpacity={0.9}
+                strokeOpacity={0.95}
                 tabIndex={0}
                 role="button"
                 aria-label={`${bubble.ip}, ${bubble.country ?? "unknown country"}, ${bubble.count} events`}
-                className="cursor-pointer focus-visible:stroke-white focus-visible:outline-none"
+                className="cursor-pointer focus-visible:stroke-[#e9e6d9] focus-visible:outline-none"
                 onMouseEnter={(event) => showHover(event, bubble)}
                 onFocus={() => setHover({ bubble, x: bubble.x, y: bubble.y - 6 })}
                 onBlur={() => setHover(null)}
               />
             </g>
           ))}
-
         </svg>
-
-        <div className="pointer-events-none absolute bottom-2 left-3 rounded border border-console-border/70 bg-console-bg/70 px-2 py-1 text-[9px] text-console-muted backdrop-blur">
-          Equal Earth · no external tiles
-        </div>
 
         {hover && (
           <div
-            className="pointer-events-none absolute z-10 hidden w-48 -translate-x-1/2 -translate-y-[calc(100%+8px)] rounded-lg border border-console-border bg-[#0a1220]/95 px-3 py-2 shadow-xl backdrop-blur sm:block"
+            className="pointer-events-none absolute z-10 hidden w-52 -translate-x-1/2 -translate-y-[calc(100%+10px)] border border-console-border-strong bg-console-panel px-2.5 py-2 sm:block"
             style={{
               left: `${(hover.x / WIDTH) * 100}%`,
               top: `${(hover.y / HEIGHT) * 100}%`,
@@ -293,21 +279,26 @@ export function GeoMap({
             <div className="font-mono text-[10px] text-console-text">
               {hover.bubble.ip}
             </div>
-            <div className="mt-0.5 text-[10px] text-console-muted">
+            <div className="mt-0.5 text-[9.5px] text-console-muted">
               {hover.bubble.country ?? "Unknown"}
               {hover.bubble.city ? ` · ${hover.bubble.city}` : ""}
             </div>
-            <div className="mt-0.5 text-[10px] text-console-muted">
+            <div className="mt-0.5 truncate font-mono text-[9px] text-console-faint">
               {hover.bubble.asn ?? "ASN unknown"}
             </div>
-            <div className="mt-1 flex items-center justify-between border-t border-console-border/60 pt-1">
+            <div className="mt-1.5 flex items-center justify-between border-t border-console-border pt-1.5">
               <SeverityDot severity={hover.bubble.severity} />
-              <span className="font-mono text-[10px] text-console-text">
-                {compactNumber(hover.bubble.count)} events
+              <span className="font-mono text-[10px] text-console-text tabular-nums">
+                {compactNumber(hover.bubble.count)} evt
               </span>
             </div>
           </div>
         )}
+      </div>
+
+      <div className="flex items-center justify-between border-t border-console-border px-3 py-1.5 font-mono text-[8.5px] tracking-[0.1em] text-console-faint uppercase">
+        <span>Equal Earth · offline vector tiles</span>
+        <span className="tabular-nums">{bubbles.length} located</span>
       </div>
     </Panel>
   );

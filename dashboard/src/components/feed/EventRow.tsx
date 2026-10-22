@@ -25,33 +25,33 @@ export const EventRow = memo(function EventRow({ event, onSelect }: EventRowProp
           onSelect(event);
         }
       }}
-      className="group cursor-pointer border-b border-console-border/45 transition-colors last:border-0 hover:bg-white/[0.035] focus-visible:bg-white/[0.05] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#38bdf8]"
+      className="group cursor-pointer border-b border-console-border/45 transition-colors last:border-0 hover:bg-white/[0.025] focus-visible:bg-white/[0.04] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-console-accent"
     >
-      <td className="py-1.5 pr-1 pl-2 align-middle whitespace-nowrap">
+      <td className="py-2 pr-1 pl-2 align-middle whitespace-nowrap">
         <time
           dateTime={event.timestamp}
           title={formatExact(event.timestamp)}
-          className="font-mono text-[10px] text-console-muted tabular-nums"
+          className="font-mono text-[9.5px] text-console-muted tabular-nums"
         >
           {formatClock(event.timestamp)}
         </time>
       </td>
-      <td className="py-1.5 align-middle">
-        <Badge tone={event.service} size="xs" className="uppercase">
+      <td className="py-2 align-middle">
+        <Badge tone={event.service} mono size="xs" className="uppercase">
           {event.service}
         </Badge>
       </td>
-      <td className="max-w-[108px] py-1.5 align-middle">
+      <td className="max-w-[108px] py-2 align-middle">
         <span
-          className="block truncate font-mono text-[10.5px] text-console-text"
+          className="block truncate font-mono text-[10px] text-console-text"
           title={event.source_ip}
         >
           {event.source_ip}
         </span>
       </td>
-      <td className="hidden py-1.5 align-middle 2xl:table-cell">
+      <td className="hidden py-2 align-middle 2xl:table-cell">
         <span
-          className="block max-w-[76px] truncate text-[10px] text-console-muted"
+          className="block max-w-[76px] truncate text-[9.5px] text-console-muted"
           title={[event.geo_info?.country, event.geo_info?.city]
             .filter(Boolean)
             .join(" · ")}
@@ -59,25 +59,28 @@ export const EventRow = memo(function EventRow({ event, onSelect }: EventRowProp
           {event.geo_info?.country ?? "—"}
         </span>
       </td>
-      <td className="py-1 pr-1 align-middle">
-        <span className="flex max-w-[96px] flex-col items-start gap-0.5">
-          <Badge tone="outline" mono size="xs" title={techniqueLabel(technique)}>
-            {technique}
-          </Badge>
+      <td className="py-1.5 pr-1 pl-1 align-middle">
+        <span className="flex max-w-[92px] flex-col items-start gap-0.5">
           <span
-            className="w-full truncate text-[9px] leading-tight text-console-muted"
+            className="font-mono text-[9px] leading-none text-console-accent"
+            title={techniqueLabel(technique)}
+          >
+            {technique}
+          </span>
+          <span
+            className="w-full truncate text-[9px] leading-tight text-console-faint"
             title={techniqueLabel(technique)}
           >
             {techniqueLabel(technique)}
           </span>
         </span>
       </td>
-      <td className="py-1.5 pr-1 align-middle">
+      <td className="py-2 pr-1 align-middle">
         <SeverityDot severity={event.severity} />
       </td>
-      <td className="py-1.5 pr-2 align-middle">
+      <td className="py-2 pr-2 align-middle">
         <span
-          className="line-clamp-2 text-[10px] leading-snug text-console-muted group-hover:text-console-text"
+          className="line-clamp-2 text-[9.5px] leading-snug text-console-muted group-hover:text-console-text"
           title={summary}
         >
           {truncate(summary, 88)}

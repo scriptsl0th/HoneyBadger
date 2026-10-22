@@ -299,7 +299,7 @@ docker-compose up -d
 docker-compose logs -f
 ```
 
-If this is your first run, Docker pulls the official PostgreSQL, Prometheus, Alertmanager and Grafana images and builds the dashboard image. The monitoring stack can start on its own, and the dashboard's nginx keeps serving the SPA when the backend is down. The backend/Dockerfile ships with the backend slice — until then, `docker compose up` cannot build `backend`, which is the only gated piece. PostgreSQL is healthchecked; the backend waits for it.
+If this is your first run, Docker pulls the official PostgreSQL, Prometheus, Alertmanager and Grafana images and builds the dashboard and backend images. The backend runs the SSH honeypot and the intake API/WebSocket; PostgreSQL is healthchecked, so the backend waits for it. The monitoring stack can also start on its own, and the dashboard's nginx keeps serving the SPA when the backend is down.
 
 Preview Grafana with synthetic metrics while the backend is still being built:
 

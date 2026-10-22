@@ -64,9 +64,9 @@ export function CopyButton({
       title={copied ? "Copied" : `${label} to clipboard`}
       aria-label={copied ? "Copied to clipboard" : `${label} to clipboard`}
       className={[
-        "inline-flex items-center gap-1 rounded border border-console-border bg-white/[0.03] text-console-muted transition-colors hover:border-console-muted/50 hover:text-console-text focus-visible:outline-2 focus-visible:outline-[#38bdf8]",
-        compact ? "px-1.5 py-0.5 text-[10px]" : "px-2 py-1 text-[11px]",
-        copied ? "border-[#22c55e]/40 text-[#86efac]" : "",
+        "inline-flex items-center gap-1 border border-console-border bg-transparent font-mono tracking-[0.04em] text-console-faint transition-colors hover:border-console-border-strong hover:text-console-text focus-visible:outline-2 focus-visible:outline-console-accent",
+        compact ? "px-1 py-0.5 text-[9px]" : "px-1.5 py-1 text-[10px]",
+        copied ? "border-console-live/50 text-console-live" : "",
         className,
       ]
         .filter(Boolean)
@@ -77,7 +77,7 @@ export function CopyButton({
           <path
             d="m3 8.5 3.2 3L13 4.5"
             stroke="currentColor"
-            strokeWidth="1.7"
+            strokeWidth="1.6"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
@@ -89,14 +89,13 @@ export function CopyButton({
             y="5.5"
             width="8"
             height="8"
-            rx="1.4"
             stroke="currentColor"
-            strokeWidth="1.3"
+            strokeWidth="1.2"
           />
           <path
             d="M10.5 5V3.9c0-.8-.6-1.4-1.4-1.4H3.9c-.8 0-1.4.6-1.4 1.4v5.2c0 .8.6 1.4 1.4 1.4H5"
             stroke="currentColor"
-            strokeWidth="1.3"
+            strokeWidth="1.2"
           />
         </svg>
       )}

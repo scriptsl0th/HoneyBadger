@@ -29,6 +29,17 @@ export const SEVERITY_LABELS: Record<Severity, string> = {
   critical: "Critical",
 };
 
+/**
+ * Lighter tints for 9px labels. The base severity colours are tuned as chart
+ * fills; at label size they would fall under 4.5:1 on the ink surface.
+ */
+export const SEVERITY_TEXT_COLORS: Record<Severity, string> = {
+  low: "#9dbfb7",
+  medium: "#e2b866",
+  high: "#e3996f",
+  critical: "#e07770",
+};
+
 export function isSeverity(value: unknown): value is Severity {
   return typeof value === "string" && value in SEVERITY_RANK;
 }
@@ -39,6 +50,10 @@ export function severityRank(severity: Severity | null | undefined): number {
 
 export function severityColor(severity: Severity | null | undefined): string {
   return severity ? SEVERITY_COLORS[severity] : COLORS.muted;
+}
+
+export function severityTextColor(severity: Severity | null | undefined): string {
+  return severity ? SEVERITY_TEXT_COLORS[severity] : COLORS.muted;
 }
 
 export function isHighOrCritical(severity: Severity | null | undefined): boolean {

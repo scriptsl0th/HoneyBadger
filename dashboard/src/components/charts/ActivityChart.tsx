@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import {
-  Area,
-  AreaChart,
+  Bar,
+  BarChart,
   CartesianGrid,
   ResponsiveContainer,
   Tooltip,
@@ -58,10 +58,12 @@ function ActivityTooltip({ active, payload, label, series }: ActivityTooltipProp
   if (!active || !payload || payload.length === 0) return null;
   const total = payload[0]?.payload?.total ?? 0;
   return (
-    <div className="rounded-lg border border-console-border bg-[#0b1322]/95 px-3 py-2 shadow-xl backdrop-blur">
-      <div className="mb-1.5 flex items-center justify-between gap-4">
-        <span className="font-mono text-[10px] text-console-muted">{label}</span>
-        <span className="font-mono text-[10px] text-console-text">
+    <div className="border border-console-border-strong bg-console-panel px-2.5 py-2">
+      <div className="mb-1.5 flex items-baseline justify-between gap-4 border-b border-console-border pb-1.5">
+        <span className="font-mono text-[9px] tracking-[0.08em] text-console-muted">
+          {label}
+        </span>
+        <span className="font-mono text-[10px] text-console-text tabular-nums">
           {total} evt
         </span>
       </div>
@@ -70,9 +72,10 @@ function ActivityTooltip({ active, payload, label, series }: ActivityTooltipProp
           const entry = payload.find((candidate) => candidate.dataKey === item.key);
           const value = typeof entry?.value === "number" ? entry.value : 0;
           return (
-            <div key={item.key} className="flex items-center gap-2 text-[11px]">
+            <div key={item.key} className="flex items-center gap-2 text-[10px]">
               <span
-                className="size-1.5 rounded-full"
+                aria-hidden="true"
+                className="size-1.5 shrink-0"
                 style={{ backgroundColor: item.color }}
               />
               <span className="flex-1 text-console-muted">{item.label}</span>
@@ -126,15 +129,43 @@ export function ActivityChart({
     [timeseries, windowKey],
   );
 
+  const totals = useMemo(
+    () =>
+      series.map((item) => ({
+        ...item,
+        total: points.reduce(
+          (sum, point) => sum + (point[item.key as keyof ActivityPoint] as number),
+          0,
+        ),
+      })),
+    [points, series],
+  );
+
+  const peak = useMemo(() => {
+    let best: ActivityPoint | null = null;
+    for (const point of points) {
+      if (!best || point.total > best.total) best = point;
+    }
+    return best;
+  }, [points]);
+
+  const bucketLabel = timeseries
+    ? timeseries.bucket_seconds <= 60
+      ? "1 min"
+      : `${Math.round(timeseries.bucket_seconds / 60)} min`
+    : null;
+
   const empty = !loading && !error && points.every((point) => point.total === 0);
 
   return (
     <Panel
-      title="Attack activity"
+      index="02.1"
+      title="Attack signal"
       subtitle={
-        timeseries
-          ? `Stacked by ${mode} · ${timeseries.bucket_seconds <= 60 ? "1 min" : `${Math.round(timeseries.bucket_seconds / 60)} min`} buckets`
-          : "Stacked volume over time"
+        <>
+          Volume per {bucketLabel ?? "bucket"} · stacked by {mode}
+          {peak && peak.total > 0 ? ` · peak ${peak.total} at ${peak.label}` : ""}
+        </>
       }
       loading={false}
       error={error}
@@ -142,9 +173,12 @@ export function ActivityChart({
       empty={empty}
       emptyState={
         <div className="flex h-[292px] flex-col items-center justify-center gap-2 text-center">
-          <span className="text-sm font-medium text-console-text">Quiet window</span>
-          <span className="max-w-xs text-xs text-console-muted">
-            No attacker activity in the last {windowKey}. Try a wider window.
+          <span className="font-mono text-[10px] tracking-[0.16em] text-console-faint uppercase">
+            Quiet window
+          </span>
+          <span className="max-w-xs text-[11px] text-console-muted">
+            No attacker activity in the last {windowKey}. Widen the window or run the
+            simulator.
           </span>
         </div>
       }
@@ -152,7 +186,7 @@ export function ActivityChart({
         <div
           role="group"
           aria-label="Chart grouping"
-          className="flex items-center gap-0.5 rounded-md border border-console-border bg-console-bg/50 p-0.5"
+          className="flex items-center border border-console-border"
         >
           {(["service", "severity"] as const).map((option) => (
             <button
@@ -161,10 +195,10 @@ export function ActivityChart({
               onClick={() => setMode(option)}
               aria-pressed={mode === option}
               className={[
-                "rounded px-2 py-0.5 text-[10px] font-medium capitalize transition-colors focus-visible:outline-2 focus-visible:outline-[#38bdf8]",
+                "border-r border-console-border px-2 py-1 font-mono text-[9px] tracking-[0.08em] uppercase transition-colors last:border-r-0",
                 mode === option
-                  ? "bg-white/[0.08] text-console-text"
-                  : "text-console-muted hover:text-console-text",
+                  ? "bg-console-panel text-console-accent"
+                  : "text-console-faint hover:text-console-text",
               ].join(" ")}
             >
               {option}
@@ -172,7 +206,7 @@ export function ActivityChart({
           ))}
         </div>
       }
-      bodyClassName="flex flex-col px-2 pt-4 pb-3 sm:px-3"
+      bodyClassName="flex flex-col px-2 pt-4 pb-2 sm:px-3"
       className="h-full"
     >
       {loading ? (
@@ -181,81 +215,75 @@ export function ActivityChart({
         <>
           <div className="min-h-[286px] flex-1">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={points} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
-              <defs>
-                {series.map((item) => (
-                  <linearGradient
-                    key={item.key}
-                    id={`activity-${item.key}`}
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop offset="0%" stopColor={item.color} stopOpacity={0.42} />
-                    <stop offset="100%" stopColor={item.color} stopOpacity={0.03} />
-                  </linearGradient>
-                ))}
-              </defs>
-              <CartesianGrid
-                stroke={COLORS.grid}
-                strokeOpacity={0.55}
-                strokeDasharray="3 4"
-                vertical={false}
-              />
-              <XAxis
-                dataKey="label"
-                tick={{ fill: COLORS.muted, fontSize: 10 }}
-                tickLine={false}
-                axisLine={{ stroke: COLORS.grid }}
-                minTickGap={26}
-                dy={4}
-              />
-              <YAxis
-                allowDecimals={false}
-                tick={{ fill: COLORS.muted, fontSize: 10 }}
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={(value: number) => compactNumber(value)}
-                width={48}
-              />
-              <Tooltip
-                cursor={{ stroke: COLORS.muted, strokeOpacity: 0.35, strokeDasharray: "3 3" }}
-                content={<ActivityTooltip series={series} />}
-              />
-              {series.map((item, index) => (
-                <Area
-                  key={item.key}
-                  type="monotone"
-                  dataKey={item.key}
-                  name={item.label}
-                  stackId="activity"
-                  stroke={item.color}
-                  strokeWidth={1.5}
-                  fill={`url(#activity-${item.key})`}
-                  fillOpacity={1}
-                  isAnimationActive={false}
-                  activeDot={{ r: 2.5, strokeWidth: 0 }}
-                  dot={false}
-                  zIndex={series.length - index}
+              <BarChart
+                data={points}
+                margin={{ top: 4, right: 6, left: -22, bottom: 0 }}
+                barCategoryGap="18%"
+              >
+                <CartesianGrid
+                  stroke={COLORS.grid}
+                  strokeOpacity={0.7}
+                  strokeDasharray="2 4"
+                  vertical={false}
                 />
-              ))}
-            </AreaChart>
+                <XAxis
+                  dataKey="label"
+                  tick={{ fill: COLORS.faint, fontSize: 9 }}
+                  tickLine={false}
+                  axisLine={{ stroke: COLORS.border }}
+                  minTickGap={28}
+                  dy={4}
+                />
+                <YAxis
+                  allowDecimals={false}
+                  tick={{ fill: COLORS.faint, fontSize: 9 }}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(value: number) => compactNumber(value)}
+                  width={46}
+                />
+                <Tooltip
+                  cursor={{ fill: "rgba(233,230,217,0.04)" }}
+                  content={<ActivityTooltip series={series} />}
+                />
+                {series.map((item) => (
+                  <Bar
+                    key={item.key}
+                    dataKey={item.key}
+                    name={item.label}
+                    stackId="signal"
+                    fill={item.color}
+                    fillOpacity={0.82}
+                    stroke="none"
+                    isAnimationActive={false}
+                    maxBarSize={22}
+                  />
+                ))}
+              </BarChart>
             </ResponsiveContainer>
           </div>
-          <div className="mt-1 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
-            {series.map((item) => (
-              <span
-                key={item.key}
-                className="inline-flex items-center gap-1.5 text-[10px] text-console-muted"
-              >
+          <div className="mt-1 flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 border-t border-console-border/70 px-1 pt-2">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+              {totals.map((item) => (
                 <span
-                  className="size-1.5 rounded-full"
-                  style={{ backgroundColor: item.color }}
-                />
-                {item.label}
-              </span>
-            ))}
+                  key={item.key}
+                  className="inline-flex items-baseline gap-1.5 font-mono text-[9px] text-console-muted"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="size-1.5 self-center"
+                    style={{ backgroundColor: item.color }}
+                  />
+                  <span className="tracking-[0.06em] uppercase">{item.label}</span>
+                  <span className="text-console-text tabular-nums">
+                    {compactNumber(item.total)}
+                  </span>
+                </span>
+              ))}
+            </div>
+            <span className="font-mono text-[8.5px] tracking-[0.1em] text-console-faint uppercase">
+              {points.length} buckets · {windowKey}
+            </span>
           </div>
         </>
       )}

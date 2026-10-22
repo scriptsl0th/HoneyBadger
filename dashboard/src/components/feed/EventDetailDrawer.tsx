@@ -19,11 +19,13 @@ interface EventDetailDrawerProps {
 
 function DetailRow({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="grid grid-cols-[92px_minmax(0,1fr)] gap-2 border-b border-console-border/40 py-1.5 last:border-0">
-      <dt className="text-[9px] font-medium tracking-[0.1em] text-console-muted uppercase">
+    <div className="grid grid-cols-[92px_minmax(0,1fr)] gap-2 border-b border-console-border/55 py-1.5 last:border-0">
+      <dt className="font-mono text-[8.5px] leading-4 font-medium tracking-[0.08em] text-console-faint uppercase">
         {label}
       </dt>
-      <dd className="min-w-0 text-[11px] break-words text-console-text">{children}</dd>
+      <dd className="min-w-0 text-[11px] leading-4 break-words text-console-text">
+        {children}
+      </dd>
     </div>
   );
 }
@@ -40,12 +42,10 @@ function Section({
   return (
     <section className="mt-4">
       <div className="mb-1 flex items-center justify-between gap-2">
-        <h3 className="text-[9px] font-semibold tracking-[0.16em] text-console-muted uppercase">
-          {title}
-        </h3>
+        <h3 className="label text-console-faint">{title}</h3>
         {actions}
       </div>
-      <dl className="rounded-lg border border-console-border/70 bg-console-bg/35 px-3 py-1">
+      <dl className="border border-console-border bg-console-bg/40 px-3 py-1">
         {children}
       </dl>
     </section>
@@ -54,7 +54,7 @@ function Section({
 
 function Mono({ children }: { children: ReactNode }) {
   return (
-    <span className="font-mono text-[10.5px] break-all text-console-text">
+    <span className="font-mono text-[10px] break-all text-console-text">
       {children}
     </span>
   );
@@ -111,11 +111,12 @@ export function EventDetailDrawer({ event, onClose }: EventDetailDrawerProps) {
   const geo = event.geo_info;
   const login = event.login_info;
   const json = JSON.stringify(event, null, 2);
+  const accent = severityColor(event.severity);
 
   return (
     <>
       <div
-        className="fixed inset-0 z-40 bg-[#02060f]/70 backdrop-blur-[2px]"
+        className="fixed inset-0 z-40 bg-[#060705]/80"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -124,27 +125,30 @@ export function EventDetailDrawer({ event, onClose }: EventDetailDrawerProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="event-detail-title"
-        className="animate-slide-in fixed inset-y-0 right-0 z-50 flex w-full max-w-[480px] flex-col border-l border-console-border bg-console-panel shadow-[-20px_0_60px_-20px_rgba(0,0,0,0.9)] motion-reduce:animate-none"
+        className="animate-slide-in fixed inset-y-0 right-0 z-50 flex w-full max-w-[480px] flex-col border-l border-console-border-strong bg-console-panel motion-reduce:animate-none"
       >
-        <header className="flex items-start justify-between gap-3 border-b border-console-border px-5 py-4">
+        <span
+          aria-hidden="true"
+          className="h-[2px] w-full shrink-0"
+          style={{ backgroundColor: accent }}
+        />
+        <header className="flex items-start justify-between gap-3 border-b border-console-border bg-console-panel-2 px-4 py-3">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[9px] font-semibold tracking-[0.18em] text-console-muted uppercase">
-                Event detail
-              </span>
-              <Badge tone={event.service} size="xs" className="uppercase">
+              <span className="label text-console-faint">Event detail</span>
+              <Badge tone={event.service} mono size="xs" className="uppercase">
                 {event.service}
               </Badge>
               <SeverityDot severity={event.severity} />
             </div>
             <h2
               id="event-detail-title"
-              className="mt-1.5 truncate font-mono text-sm text-console-text"
+              className="mt-2 truncate font-mono text-[13px] leading-none text-console-text"
               title={event.source_ip}
             >
               {event.source_ip}
             </h2>
-            <p className="mt-0.5 text-[10px] text-console-muted">
+            <p className="mt-1.5 font-mono text-[9px] text-console-faint">
               {formatExact(event.timestamp)} · {relativeTime(event.timestamp)}
             </p>
           </div>
@@ -153,36 +157,33 @@ export function EventDetailDrawer({ event, onClose }: EventDetailDrawerProps) {
             type="button"
             onClick={onClose}
             aria-label="Close event details"
-            className="grid size-7 shrink-0 place-items-center rounded-md border border-console-border text-console-muted transition-colors hover:bg-white/[0.06] hover:text-console-text focus-visible:outline-2 focus-visible:outline-[#38bdf8]"
+            className="grid size-7 shrink-0 place-items-center border border-console-border text-console-muted transition-colors hover:border-console-border-strong hover:text-console-text focus-visible:outline-2 focus-visible:outline-console-accent"
           >
             <svg viewBox="0 0 16 16" className="size-3.5" fill="none" aria-hidden="true">
               <path
                 d="m4 4 8 8M12 4l-8 8"
                 stroke="currentColor"
-                strokeWidth="1.5"
+                strokeWidth="1.4"
                 strokeLinecap="round"
               />
             </svg>
           </button>
         </header>
 
-        <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-6">
+        <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto px-4 pt-3 pb-6">
           <div
-            className="rounded-lg border px-3 py-2.5"
-            style={{
-              borderColor: `${severityColor(event.severity)}55`,
-              backgroundColor: `${severityColor(event.severity)}0d`,
-            }}
+            className="border border-console-border border-l-2 bg-console-bg/40 px-3 py-2.5"
+            style={{ borderLeftColor: accent }}
           >
             <div className="flex flex-wrap items-center gap-1.5">
-              <Badge tone="outline" mono>
+              <span className="font-mono text-[10px] text-console-accent">
                 {event.technique_id ?? "unknown"}
-              </Badge>
-              <span className="text-[11px] font-medium text-console-text">
+              </span>
+              <span className="text-[10.5px] font-medium text-console-text">
                 {techniqueLabel(event.technique_id)}
               </span>
             </div>
-            <p className="mt-1.5 text-[11px] leading-relaxed break-words text-console-muted">
+            <p className="mt-1.5 text-[10.5px] leading-relaxed break-words text-console-muted">
               {eventSummary(event)}
             </p>
           </div>
@@ -195,13 +196,13 @@ export function EventDetailDrawer({ event, onClose }: EventDetailDrawerProps) {
               </span>
             </DetailRow>
             <DetailRow label="Country">
-              {geo?.country ?? <span className="text-console-muted">—</span>}
+              {geo?.country ?? <span className="text-console-faint">—</span>}
             </DetailRow>
             <DetailRow label="Region">
-              {geo?.region ?? <span className="text-console-muted">—</span>}
+              {geo?.region ?? <span className="text-console-faint">—</span>}
             </DetailRow>
             <DetailRow label="City">
-              {geo?.city ?? <span className="text-console-muted">—</span>}
+              {geo?.city ?? <span className="text-console-faint">—</span>}
             </DetailRow>
             <DetailRow label="ASN">
               <Mono>{geo?.asn ?? "—"}</Mono>
@@ -256,7 +257,7 @@ export function EventDetailDrawer({ event, onClose }: EventDetailDrawerProps) {
               title="Command"
               actions={<CopyButton value={event.command} label="Command" compact />}
             >
-              <pre className="scrollbar-thin max-h-40 overflow-auto py-1 font-mono text-[10.5px] leading-relaxed break-all whitespace-pre-wrap text-[#fcd34d]">
+              <pre className="scrollbar-thin max-h-40 overflow-auto py-1 font-mono text-[10px] leading-relaxed break-all whitespace-pre-wrap text-console-accent">
                 {event.command}
               </pre>
             </Section>
@@ -265,9 +266,7 @@ export function EventDetailDrawer({ event, onClose }: EventDetailDrawerProps) {
           {event.payload_url && (
             <Section
               title="Payload metadata"
-              actions={
-                <CopyButton value={event.payload_url} label="URL" compact />
-              }
+              actions={<CopyButton value={event.payload_url} label="URL" compact />}
             >
               <DetailRow label="URL">
                 {/* Attacker-controlled: rendered as text, never as a link. */}
@@ -286,15 +285,15 @@ export function EventDetailDrawer({ event, onClose }: EventDetailDrawerProps) {
             title="Raw event"
             actions={<CopyButton value={json} label="JSON" compact />}
           >
-            <pre className="scrollbar-thin max-h-72 overflow-auto py-2 font-mono text-[10px] leading-relaxed break-all whitespace-pre-wrap text-console-muted">
+            <pre className="scrollbar-thin max-h-72 overflow-auto py-2 font-mono text-[9.5px] leading-relaxed break-all whitespace-pre-wrap text-console-muted">
               {json}
             </pre>
           </Section>
         </div>
 
-        <footer className="flex items-center justify-between border-t border-console-border px-5 py-2 text-[9px] tracking-wide text-console-muted uppercase">
+        <footer className="flex items-center justify-between border-t border-console-border bg-console-panel-2 px-4 py-2 font-mono text-[8.5px] tracking-[0.08em] text-console-faint uppercase">
           <span>Esc to close · Tab cycles focus</span>
-          <span className="font-mono normal-case">read-only</span>
+          <span>read-only</span>
         </footer>
       </aside>
     </>

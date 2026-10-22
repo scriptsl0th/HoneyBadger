@@ -169,7 +169,6 @@ docker compose --profile fixtures up -d
 # Alertmanager http://localhost:9093
 ```
 
-`docker-compose.yml` is complete; `backend/Dockerfile` is empty until backend
-slice 6, so `backend` (and therefore a full `up`) is the only gated piece.
-Monitoring services start independently, and dashboard nginx serves the SPA even
-when the backend is absent.
+`docker-compose.yml` is complete; `backend/Dockerfile` builds the SSH honeypot
+and intake API/WebSocket image. Monitoring services start independently, and
+dashboard nginx serves the SPA even when the backend is absent.

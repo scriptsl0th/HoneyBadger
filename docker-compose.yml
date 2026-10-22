@@ -5,11 +5,10 @@
 # Preview Grafana before the backend exists (synthetic metrics):
 #   docker compose --profile fixtures up -d
 #
-# The backend image builds from ./backend. Its Dockerfile is intentionally
-# empty until the backend slice lands, so `backend` (and therefore a full
-# `up`) is gated on that slice. Monitoring services can run independently:
-# dashboard nginx serves the SPA even when the backend is absent, and
-# `docker compose config` stays valid.
+# The backend image builds from ./backend and runs the SSH honeypot plus the
+# intake API/WebSocket in one asyncio process. Monitoring services can run
+# independently: dashboard nginx serves the SPA even when the backend is
+# absent, and `docker compose config` stays valid.
 #
 # Containment/egress policy is a backend-slice decision: the network below is
 # a plain bridge (NOT internal:true) because the default GeoIP provider
@@ -49,9 +48,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    # No healthcheck yet on purpose. backend/Dockerfile ships with the backend
-    # slice; a HEALTHCHECK that talks to an unimplemented image would make
-    # dependent services wait forever. Add one here once the image is real.
+    # The image defines its own HEALTHCHECK against http://127.0.0.1:8090/health.
     restart: unless-stopped
     networks:
       - honeybadger
@@ -63,9 +60,9 @@ services:
       - "3000:80"
     depends_on:
       backend:
-        # `service_started`, not `service_healthy`: the backend image has no
-        # healthcheck yet, and the nginx container must start even if the
-        # backend is absent. nginx proxies /api and /ws to backend:8090.
+        # `service_started`, not `service_healthy`: the nginx container must
+        # start and serve the SPA even if the backend is down. nginx proxies
+        # /api and /ws to backend:8090.
         condition: service_started
     restart: unless-stopped
     networks:

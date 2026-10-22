@@ -13,16 +13,16 @@ type Tone =
   | "warning";
 
 const TONES: Record<Tone, string> = {
-  neutral: "border-console-border bg-white/[0.035] text-console-muted",
+  neutral: "border-console-border-strong bg-transparent text-console-muted",
   outline: "border-console-border bg-transparent text-console-muted",
-  ssh: "border-[#8b5cf6]/35 bg-[#8b5cf6]/12 text-[#c4b5fd]",
-  http: "border-[#06b6d4]/35 bg-[#06b6d4]/10 text-[#67e8f9]",
-  low: "border-[#38bdf8]/35 bg-[#38bdf8]/10 text-[#7dd3fc]",
-  medium: "border-[#f59e0b]/35 bg-[#f59e0b]/10 text-[#fcd34d]",
-  high: "border-[#f97316]/35 bg-[#f97316]/10 text-[#fdba74]",
-  critical: "border-[#ef4444]/40 bg-[#ef4444]/12 text-[#fca5a5]",
-  success: "border-[#22c55e]/35 bg-[#22c55e]/10 text-[#86efac]",
-  warning: "border-[#f59e0b]/35 bg-[#f59e0b]/10 text-[#fcd34d]",
+  ssh: "border-[#b3a5ce]/45 bg-transparent text-[#c9bde0]",
+  http: "border-[#86a6bd]/45 bg-transparent text-[#a3c0d3]",
+  low: "border-[#7ba39a]/45 bg-transparent text-[#9dbfb7]",
+  medium: "border-[#d9a441]/45 bg-transparent text-[#e2b866]",
+  high: "border-[#d1794d]/50 bg-transparent text-[#e3996f]",
+  critical: "border-[#cb4b43]/55 bg-transparent text-[#e07770]",
+  success: "border-[#93ae79]/45 bg-transparent text-[#aec596]",
+  warning: "border-[#d9a441]/45 bg-transparent text-[#e2b866]",
 };
 
 interface BadgeProps {
@@ -46,11 +46,11 @@ export function Badge({
     <span
       title={title}
       className={[
-        "inline-flex items-center gap-1 rounded border font-medium whitespace-nowrap",
+        "inline-flex items-center gap-1 border font-medium whitespace-nowrap",
         size === "xs"
-          ? "px-1.5 py-0.5 text-[10px] tracking-wide"
-          : "px-2 py-0.5 text-[11px]",
-        mono ? "font-mono" : "",
+          ? "px-1 py-px text-[9px] tracking-[0.06em]"
+          : "px-1.5 py-0.5 text-[10px] tracking-wide",
+        mono ? "font-mono" : "font-sans",
         TONES[tone],
         className,
       ]

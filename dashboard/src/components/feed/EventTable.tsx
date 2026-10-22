@@ -1,9 +1,6 @@
 import { useLayoutEffect, useRef } from "react";
 import type { EventOut, Severity } from "../../types";
-import type {
-  ServiceFilter,
-  SeverityFilter,
-} from "../../hooks/useFilters";
+import type { ServiceFilter, SeverityFilter } from "../../hooks/useFilters";
 import { eventKey } from "../../lib/events";
 import { TECHNIQUE_IDS, techniqueLabel } from "../../lib/techniques";
 import { Panel } from "../layout/Panel";
@@ -11,7 +8,7 @@ import { EmptyState } from "../ui/EmptyState";
 import { EventRow } from "./EventRow";
 
 const SELECT_CLASS =
-  "h-6 rounded border border-console-border bg-console-bg/80 px-1.5 text-[10px] text-console-muted transition-colors hover:text-console-text focus-visible:outline-2 focus-visible:outline-[#38bdf8]";
+  "h-6 border border-console-border bg-console-panel px-1.5 font-mono text-[9.5px] text-console-muted transition-colors hover:border-console-border-strong hover:text-console-text focus-visible:outline-2 focus-visible:outline-console-accent";
 
 interface EventTableProps {
   events: EventOut[];
@@ -67,7 +64,7 @@ export function EventTable({
       const index = events.findIndex(
         (event) => eventKey(event) === previousFirst.current,
       );
-      if (index > 0) element.scrollTop += Math.min(index, 20) * 48;
+      if (index > 0) element.scrollTop += Math.min(index, 20) * 44;
     }
     previousFirst.current = first;
   }, [events]);
@@ -75,13 +72,13 @@ export function EventTable({
   const filtersActive = activeFilterCount > 0;
   const emptyState = filtersActive ? (
     <EmptyState
-      title="No matching events"
+      title="No matching intercepts"
       message="The live buffer has no events matching the current filters."
       action={
         <button
           type="button"
           onClick={onResetFilters}
-          className="rounded-md border border-console-border bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-console-text transition-colors hover:bg-white/[0.08] focus-visible:outline-2 focus-visible:outline-[#38bdf8]"
+          className="border border-console-border-strong bg-console-panel px-3 py-1.5 font-mono text-[10px] tracking-[0.06em] text-console-text uppercase transition-colors hover:border-console-muted"
         >
           Reset filters
         </button>
@@ -89,7 +86,7 @@ export function EventTable({
     />
   ) : (
     <EmptyState
-      title="No attackers yet — run the simulator"
+      title="No attackers yet"
       message="The honeypots are listening. Generate realistic attack traffic to populate the feed."
       command="docker compose exec backend python -m sim.simulate"
     />
@@ -97,7 +94,8 @@ export function EventTable({
 
   return (
     <Panel
-      title="Live event feed"
+      index="03.2"
+      title="Live intercepts"
       subtitle={`${events.length} shown · newest first · 500 max`}
       loading={loading}
       error={events.length === 0 ? error : null}
@@ -110,10 +108,10 @@ export function EventTable({
           onClick={onTogglePause}
           aria-pressed={paused}
           className={[
-            "inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[10px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-[#38bdf8]",
+            "inline-flex items-center gap-1.5 border px-1.5 py-1 font-mono text-[9px] tracking-[0.06em] uppercase transition-colors focus-visible:outline-2 focus-visible:outline-console-accent",
             paused
-              ? "border-[#f59e0b]/40 bg-[#f59e0b]/10 text-[#fcd34d]"
-              : "border-console-border bg-white/[0.03] text-console-muted hover:text-console-text",
+              ? "border-console-accent-dim bg-console-panel text-console-accent"
+              : "border-console-border text-console-muted hover:border-console-border-strong hover:text-console-text",
           ].join(" ")}
         >
           {paused ? (
@@ -122,13 +120,13 @@ export function EventTable({
             </svg>
           ) : (
             <svg viewBox="0 0 12 12" className="size-2.5" fill="currentColor" aria-hidden="true">
-              <rect x="2.5" y="1.8" width="2.4" height="8.4" rx=".5" />
-              <rect x="7.1" y="1.8" width="2.4" height="8.4" rx=".5" />
+              <rect x="2.5" y="1.8" width="2.4" height="8.4" />
+              <rect x="7.1" y="1.8" width="2.4" height="8.4" />
             </svg>
           )}
           {paused ? "Resume" : "Pause"}
           {paused && pendingCount > 0 && (
-            <span className="rounded-full bg-[#f59e0b]/20 px-1.5 py-px font-mono text-[9px]">
+            <span className="font-mono text-[8.5px] text-console-accent">
               +{pendingCount}
             </span>
           )}
@@ -137,7 +135,7 @@ export function EventTable({
       bodyClassName="flex min-h-0 flex-col p-0"
       className="h-[560px] xl:h-full"
     >
-      <div className="flex flex-wrap items-center gap-1.5 border-b border-console-border/60 px-2.5 py-2">
+      <div className="flex flex-wrap items-center gap-1.5 border-b border-console-border bg-console-panel px-2 py-1.5">
         <select
           aria-label="Filter by service"
           value={service}
@@ -182,42 +180,43 @@ export function EventTable({
           <button
             type="button"
             onClick={onResetFilters}
-            className="rounded px-1.5 py-0.5 text-[10px] text-console-muted underline decoration-console-border underline-offset-2 hover:text-console-text focus-visible:outline-2 focus-visible:outline-[#38bdf8]"
+            className="px-1 font-mono text-[9px] text-console-faint underline decoration-console-border underline-offset-2 hover:text-console-text"
           >
             Reset ({activeFilterCount})
           </button>
         )}
-        <span className="ml-auto text-[9px] font-medium tracking-[0.1em] text-console-muted uppercase">
+        <span className="ml-auto inline-flex items-center gap-1.5 font-mono text-[8.5px] tracking-[0.12em] text-console-faint uppercase">
+          <span
+            aria-hidden="true"
+            className={`size-1.5 ${paused ? "bg-console-accent" : "bg-console-live"}`}
+          />
           {paused ? "Paused" : "Streaming"}
         </span>
       </div>
 
-      <div
-        ref={scrollRef}
-        className="scrollbar-thin min-h-0 flex-1 overflow-auto"
-      >
-        <table className="w-full min-w-[470px] table-fixed border-collapse text-left">
-          <thead className="sticky top-0 z-10 bg-[#111a2b]/95 backdrop-blur">
+      <div ref={scrollRef} className="scrollbar-thin relative min-h-0 flex-1 overflow-auto">
+        <table className="w-full min-w-[500px] table-fixed border-collapse text-left">
+          <thead className="sticky top-0 z-10 bg-console-panel-2">
             <tr className="border-b border-console-border">
-              <th className="w-[52px] py-1.5 pr-1 pl-2 text-[9px] font-semibold tracking-[0.08em] text-console-muted uppercase">
+              <th className="w-[52px] py-1.5 pr-1 pl-2 font-mono text-[8.5px] font-medium tracking-[0.1em] text-console-faint uppercase">
                 Time
               </th>
-              <th className="w-[42px] py-1.5 text-[9px] font-semibold tracking-[0.08em] text-console-muted uppercase">
+              <th className="w-[44px] py-1.5 font-mono text-[8.5px] font-medium tracking-[0.1em] text-console-faint uppercase">
                 Svc
               </th>
-              <th className="w-[104px] py-1.5 text-[9px] font-semibold tracking-[0.08em] text-console-muted uppercase">
+              <th className="w-[104px] py-1.5 font-mono text-[8.5px] font-medium tracking-[0.1em] text-console-faint uppercase">
                 Source
               </th>
-              <th className="hidden w-[72px] py-1.5 text-[9px] font-semibold tracking-[0.08em] text-console-muted uppercase 2xl:table-cell">
+              <th className="hidden w-[78px] py-1.5 font-mono text-[8.5px] font-medium tracking-[0.1em] text-console-faint uppercase 2xl:table-cell">
                 Country
               </th>
-              <th className="w-[94px] py-1.5 pr-1 text-[9px] font-semibold tracking-[0.08em] text-console-muted uppercase">
+              <th className="w-[92px] py-1.5 pr-1 pl-1 font-mono text-[8.5px] font-medium tracking-[0.1em] text-console-faint uppercase">
                 Technique
               </th>
-              <th className="w-[70px] py-1.5 pr-1 text-[9px] font-semibold tracking-[0.08em] text-console-muted uppercase">
+              <th className="w-[74px] py-1.5 pr-1 font-mono text-[8.5px] font-medium tracking-[0.1em] text-console-faint uppercase">
                 Severity
               </th>
-              <th className="py-1.5 pr-2 text-[9px] font-semibold tracking-[0.08em] text-console-muted uppercase">
+              <th className="py-1.5 pr-2 font-mono text-[8.5px] font-medium tracking-[0.1em] text-console-faint uppercase">
                 Summary
               </th>
             </tr>

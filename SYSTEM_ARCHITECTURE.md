@@ -196,11 +196,11 @@ docker compose up -d
 
 The compose file is complete and `docker compose config` is valid. Monitoring
 services can start independently, and dashboard nginx keeps serving the SPA if
-the backend is absent. **The backend image is gated on backend slice 6**:
-`backend/Dockerfile` is empty until then, so `backend` is the only service that
-cannot build yet. PostgreSQL is healthchecked; the backend waits for it, while
-the dashboard depends on `service_started` (there is no backend healthcheck yet,
-and one would block forever on an unimplemented image).
+the backend is absent. **The backend image builds from `backend/Dockerfile`**
+and runs the SSH honeypot plus the intake API/WebSocket in one asyncio process;
+its Dockerfile healthcheck probes `http://127.0.0.1:8090/health`. PostgreSQL is
+healthchecked and the backend waits for it, while the dashboard depends on
+`service_started` so nginx still starts when the backend is down.
 
 To preview Grafana before the backend exporter exists:
 
