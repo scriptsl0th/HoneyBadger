@@ -1,0 +1,170 @@
+# HoneyBadger — full local stack.
+#
+# Start everything except the dev-only fixtures profile:
+#   docker compose up -d
+# Preview Grafana before the backend exists (synthetic metrics):
+#   docker compose --profile fixtures up -d
+#
+# The backend image builds from ./backend. Its Dockerfile is intentionally
+# empty until the backend slice lands, so `backend` (and therefore a full
+# `up`) is gated on that slice. Monitoring services can run independently:
+# dashboard nginx serves the SPA even when the backend is absent, and
+# `docker compose config` stays valid.
+#
+# Containment/egress policy is a backend-slice decision: the network below is
+# a plain bridge (NOT internal:true) because the default GeoIP provider
+# (ip-api) needs egress. See SYSTEM_ARCHITECTURE.md §6.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: honeybadger
+      POSTGRES_PASSWORD: honeybadger
+      POSTGRES_DB: honeybadger
+    ports:
+      # Loopback only: the database is never exposed on the LAN.
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - hb-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U honeybadger -d honeybadger"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - honeybadger
+
+  backend:
+    build:
+      context: ./backend
+    env_file:
+      - .env
+    ports:
+      - "8022:8022"   # SSH honeypot (HB_SSH_PORT default 8022)
+      - "8081:8081"   # HTTP honeypot
+      - "8000:8000"   # Prometheus metrics exporter
+      - "8090:8090"   # Intake/stats REST API + WebSocket
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # No healthcheck yet on purpose. backend/Dockerfile ships with the backend
+    # slice; a HEALTHCHECK that talks to an unimplemented image would make
+    # dependent services wait forever. Add one here once the image is real.
+    restart: unless-stopped
+    networks:
+      - honeybadger
+
+  dashboard:
+    build:
+      context: ./dashboard
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        # `service_started`, not `service_healthy`: the backend image has no
+        # healthcheck yet, and the nginx container must start even if the
+        # backend is absent. nginx proxies /api and /ws to backend:8090.
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - honeybadger
+
+  prometheus:
+    image: prom/prometheus:v3.15.1
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=${HB_PROMETHEUS_RETENTION:-15d}
+      - --web.enable-lifecycle
+      - --web.external-url=http://localhost:9090
+    volumes:
+      - ./monitoring/prometheus:/etc/prometheus:ro
+      - hb-prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      alertmanager:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9090/-/healthy || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - honeybadger
+
+  alertmanager:
+    image: prom/alertmanager:v0.34.1
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+    volumes:
+      - ./monitoring/alertmanager:/etc/alertmanager:ro
+      - hb-alertmanager-data:/alertmanager
+    ports:
+      - "9093:9093"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9093/-/healthy || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - honeybadger
+
+  grafana:
+    image: grafana/grafana:13.2.4
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${HB_GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${HB_GRAFANA_ADMIN_PASSWORD:-honeybadger}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: ${HB_GRAFANA_ANONYMOUS:-true}
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_SERVER_ROOT_URL: ${HB_GRAFANA_ROOT_URL:-http://localhost:3001}
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/overview.json
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - hb-grafana-data:/var/lib/grafana
+    depends_on:
+      prometheus:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - honeybadger
+
+  # Dev-only. Synthetic metrics for validating Grafana dashboards before the
+  # backend metrics exporter exists. Enabling this in production would mix
+  # fabricated data with real telemetry — never enable the profile there.
+  fixtures:
+    image: python:3.12-alpine
+    profiles:
+      - fixtures
+    command: ["python", "/app/metrics_fixture.py"]
+    volumes:
+      - ./monitoring/fixtures:/app:ro
+    ports:
+      - "127.0.0.1:9101:9101"
+    restart: unless-stopped
+    networks:
+      - honeybadger
+
+networks:
+  honeybadger:
+    driver: bridge
+
+volumes:
+  hb-postgres-data:
+  hb-prometheus-data:
+  hb-alertmanager-data:
+  hb-grafana-data:

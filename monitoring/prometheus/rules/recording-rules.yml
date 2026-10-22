@@ -1,0 +1,50 @@
+# HoneyBadger - Prometheus recording rules
+#
+# Precompute the rates/ratios the Grafana dashboards and the alert rules use.
+# Names follow the Prometheus convention: level:metric:operation.
+# All label sets come from the cardinality-safe metric contract; none of
+# these rules add a per-IP / per-username label.
+#
+# Loaded via rule_files in ../prometheus.yml. Reload with:
+#   curl -X POST http://localhost:9090/-/reload
+
+groups:
+  - name: honeybadger.recording
+    interval: 30s
+    rules:
+      # Overall honeypot activity.
+      - record: hb:events:rate5m
+        expr: sum(rate(hb_events_total[5m]))
+
+      # Per-honeypot (ssh/http) activity.
+      - record: hb:events:rate5m_by_service
+        expr: sum by (service) (rate(hb_events_total[5m]))
+
+      # Longer window per ATT&CK technique: used for technique mix panels.
+      - record: hb:events:rate1h_by_technique
+        expr: sum by (technique) (rate(hb_events_total[1h]))
+
+      # Credential attempts (SSH + HTTP login bait), all services.
+      - record: hb:auth:rate5m
+        expr: sum(rate(hb_credentials_attempts_total[5m]))
+
+      # HTTP response mix; useful to spot scanning vs. exploitation attempts.
+      - record: hb:http:rate5m_by_status
+        expr: sum by (status) (rate(hb_http_requests_total[5m]))
+
+      # Share of high/critical events. clamp_min keeps the denominator away
+      # from zero so the ratio stays a number (0) during idle periods.
+      - record: hb:severity:high_ratio15m
+        expr: sum(rate(hb_events_total{severity=~"high|critical"}[15m])) / clamp_min(sum(rate(hb_events_total[15m])), 0.001)
+
+      # Captured payload metadata over the last hour.
+      - record: hb:payloads:increase1h
+        expr: sum(increase(hb_payloads_total[1h]))
+
+      # Enrichment/persistence failure rate per pipeline stage.
+      - record: hb:errors:rate5m_by_stage
+        expr: sum by (stage) (rate(hb_pipeline_errors_total[5m]))
+
+      # 1 when the backend exporter is scrapeable, 0 when it is down.
+      - record: hb:target:up
+        expr: max(up{job="honeybadger-backend"})

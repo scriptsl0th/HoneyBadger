@@ -1,0 +1,80 @@
+# HoneyBadger - Alertmanager configuration
+#
+# UI-ONLY BY DEFAULT: alerts are grouped, de-duplicated and shown at
+# http://localhost:9093. Nothing leaves the host - no webhook, no email.
+# Prometheus pushes to alertmanager:9093 over the compose network.
+#
+# Receivers below intentionally have no configs so the file is valid without
+# any external credentials. Add a receiver only if you want delivery, and see
+# the commented examples at the bottom of this file.
+
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: honeybadger-default
+  group_by: [alertname, severity]
+  group_wait: 10s
+  group_interval: 2m
+  repeat_interval: 4h
+  routes:
+    # Critical alerts page faster and repeat hourly.
+    - matchers: ['severity="critical"']
+      receiver: honeybadger-critical
+      repeat_interval: 1h
+
+# While the whole backend is down, don't also fire derived warnings.
+inhibit_rules:
+  - source_matchers: ['alertname="HoneyBadgerDown"']
+    target_matchers: ['severity=~"warning|info"']
+    equal: ['job']
+
+receivers:
+  - name: honeybadger-default
+  - name: honeybadger-critical
+
+# =============================================================================
+# OPTIONAL DELIVERY (commented out - the active config above is UI-only)
+# =============================================================================
+#
+# Alertmanager expands $VARS only when started with --config.expand-env=true.
+# In compose, add that flag to the alertmanager command and provide values
+# through the container environment / .env file:
+#
+#   ALERTMANAGER_WEBHOOK_URL=https://example.invalid/hooks/honeybadger
+#   SMTP_SMARTHOST=smtp.example.com:587
+#   SMTP_FROM=honeybadger@example.com
+#   SMTP_TO=oncall@example.com
+#   SMTP_AUTH_USERNAME=...
+#   SMTP_AUTH_PASSWORD=...
+#
+# Example webhook receiver (Slack/Discord/Teams bridge):
+#
+#   receivers:
+#     - name: honeybadger-default
+#       webhook_configs:
+#         - url: "${ALERTMANAGER_WEBHOOK_URL}"
+#           send_resolved: true
+#           max_alerts: 0
+#
+# Example email receiver:
+#
+#   global:
+#     resolve_timeout: 5m
+#     smtp_smarthost: "${SMTP_SMARTHOST}"
+#     smtp_from: "${SMTP_FROM}"
+#     smtp_auth_username: "${SMTP_AUTH_USERNAME}"
+#     smtp_auth_password: "${SMTP_AUTH_PASSWORD}"
+#     smtp_require_tls: true
+#
+#   receivers:
+#     - name: honeybadger-critical
+#       email_configs:
+#         - to: "${SMTP_TO}"
+#           send_resolved: true
+#           headers:
+#             subject: '[HoneyBadger] {{ .Status | toUpper }}: {{ .CommonLabels.alertname }}'
+#
+# Keep secrets out of this file and out of git; set them in the environment.
+# If you enable delivery, remember the honeypot is internet-facing: only send
+# metadata (alert names, labels, counts) - never captured credentials/payloads.

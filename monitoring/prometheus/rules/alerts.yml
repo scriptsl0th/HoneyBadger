@@ -1,0 +1,157 @@
+# HoneyBadger - Prometheus alert rules
+#
+# These alerts are the only alerting layer: the backend never pushes alerts.
+#   backend /metrics -> Prometheus (evaluate every 15s) -> Alertmanager -> UI
+#
+# Local Alertmanager UI: http://localhost:9093
+# Tune thresholds in this file, then reload Prometheus:
+#   curl -X POST http://localhost:9090/-/reload
+#
+# Every alert carries team/service labels plus a category:
+#   availability - the honeypot or its storage is not working
+#   security     - attacker activity crossed a review threshold
+#   pipeline     - enrichment/persistence/retention is degraded
+#
+# Deliberately NOT implemented:
+#   * "login success" alert - the SSH/HTTP honeypots accept every credential by
+#     design, so success is the normal path and is already captured as an event.
+#   * "no events" alert - an idle honeypot is healthy; internet background
+#     noise can legitimately drop to zero for long periods and paging on that
+#     would only create noise.
+
+groups:
+  - name: honeybadger.alerts
+    interval: 30s
+    rules:
+      # ---------------------------------------------------------------------
+      # Availability
+      # ---------------------------------------------------------------------
+
+      # The only scrape target that must always be UP. The fixtures job is
+      # intentionally excluded (it is DOWN unless --profile fixtures runs).
+      - alert: HoneyBadgerDown
+        expr: up{job="honeybadger-backend"} == 0
+        for: 2m
+        labels:
+          team: honeybadger
+          service: honeypot
+          severity: critical
+          category: availability
+        annotations:
+          summary: "HoneyBadger backend exporter is down"
+          description: >-
+            Prometheus has failed to scrape backend:8000/metrics for 2 minutes.
+            The honeypot may still accept connections while metrics are lost.
+            Check the backend container logs and that :8000 is reachable on the
+            compose network.
+
+      - alert: DatabaseUnreachable
+        expr: hb_db_up == 0
+        for: 2m
+        labels:
+          team: honeybadger
+          service: honeypot
+          severity: critical
+          category: availability
+        annotations:
+          summary: "HoneyBadger cannot reach PostgreSQL"
+          description: >-
+            hb_db_up has been 0 for 2 minutes. Events are not being persisted and
+            the React dashboard (port 3000) will serve stale data. Check the
+            postgres container and backend DSN/credentials.
+
+      # ---------------------------------------------------------------------
+      # Security (tune these thresholds to your exposure)
+      # ---------------------------------------------------------------------
+
+      # 0.5/s = 30 credential attempts/min sustained for 5m.
+      # Raise this if the honeypot is internet-facing and normal background
+      # SSH brute force is noisier than you want to review.
+      - alert: BruteForceWave
+        expr: sum(rate(hb_credentials_attempts_total[5m])) > 0.5
+        for: 5m
+        labels:
+          team: honeybadger
+          service: honeypot
+          severity: warning
+          category: security
+        annotations:
+          summary: "Sustained credential brute-force wave"
+          description: >-
+            More than 30 credential attempts per minute for 5 minutes
+            (current threshold: sum(rate(hb_credentials_attempts_total[5m]))
+            > 0.5, tuned in this file). Review top source ASNs and the
+            credential hash counters on the dashboard; no plaintext passwords
+            are stored.
+
+      # 0.17/s ~= 10 high/critical events per minute.
+      - alert: CriticalAttackSurge
+        expr: sum(rate(hb_events_total{severity=~"high|critical"}[5m])) > 0.17
+        for: 10m
+        labels:
+          team: honeybadger
+          service: honeypot
+          severity: warning
+          category: security
+        annotations:
+          summary: "Surge of high/critical severity events"
+          description: >-
+            High or critical events have exceeded ~10/min for 10 minutes.
+            Inspect the technique breakdown (hb:events:rate1h_by_technique) and
+            recent payload captures to decide whether this is a targeted probe.
+
+      # 0m / immediate: one captured payload is worth a look.
+      - alert: PayloadCaptured
+        expr: sum(increase(hb_payloads_total[10m])) > 0
+        for: 0m
+        labels:
+          team: honeybadger
+          service: honeypot
+          severity: warning
+          category: security
+        annotations:
+          summary: "Payload metadata captured"
+          description: >-
+            At least one payload was captured in the last 10 minutes. Payloads
+            are recorded as metadata only (URL, SHA-256, size) and are NEVER
+            fetched or executed. If CAPTURE_PAYLOADS is enabled, review the
+            noexec quarantine directory for the artifact.
+
+      # ---------------------------------------------------------------------
+      # Pipeline
+      # ---------------------------------------------------------------------
+
+      # > 3 errors/min across all stages for 10m.
+      - alert: PipelineErrors
+        expr: sum(rate(hb_pipeline_errors_total[5m])) > 0.05
+        for: 10m
+        labels:
+          team: honeybadger
+          service: honeypot
+          severity: warning
+          category: pipeline
+        annotations:
+          summary: "Enrichment pipeline is failing"
+          description: >-
+            Errors are being raised by one or more pipeline stages
+            (geoip/mitre/credentials/storage). Check hb:errors:rate5m_by_stage
+            to find the failing stage, then the backend logs. Events may still
+            be stored but with missing enrichment.
+
+      # 129600s = 36h without a successful retention run.
+      - alert: RetentionLag
+        expr: time() - hb_retention_last_success_timestamp_seconds > 129600
+        for: 10m
+        labels:
+          team: honeybadger
+          service: honeypot
+          severity: warning
+          category: pipeline
+        annotations:
+          summary: "Retention job has not succeeded in 36 hours"
+          description: >-
+            hb_retention_last_success_timestamp_seconds is older than 36 hours
+            or zero. 180-day retention is not being enforced; check the
+            retention scheduler and PostgreSQL connectivity. (A missing gauge
+            produces no series, so add an absent() rule if you also want to
+            alert on a never-initialised exporter.)

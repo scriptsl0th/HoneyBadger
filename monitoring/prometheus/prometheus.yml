@@ -1,0 +1,52 @@
+# HoneyBadger - Prometheus configuration
+#
+# Scrapes the honeypot backend's Prometheus exporter (:8000/metrics) and
+# Prometheus itself. Grafana (http://localhost:3001) reads this server.
+#
+# Metric contract, cardinality policy and tuning notes: ../README.md
+#
+# Local UI: http://localhost:9090
+# Reload after editing rules (container is started with --web.enable-lifecycle):
+#   curl -X POST http://localhost:9090/-/reload
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    stack: honeybadger
+
+rule_files:
+  - /etc/prometheus/rules/*.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs: [{targets: ["localhost:9090"]}]
+
+  # Production honeypot exporter. One backend container exposes every hb_*
+  # metric listed in ../README.md plus the default python_*/process_* metrics.
+  # The backend pushes nothing: Prometheus always pulls.
+  - job_name: honeybadger-backend
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    static_configs:
+      - targets: ["backend:8000"]
+        labels: {service: honeypot, env: demo}
+
+  # DEV/DEMO ONLY synthetic exporter (monitoring/fixtures/metrics_fixture.py).
+  # This job stays DOWN unless the fixtures profile is running:
+  #   docker compose --profile fixtures up -d
+  # A DOWN fixtures job is expected in a normal deployment; the
+  # HoneyBadgerDown alert only watches the honeybadger-backend job.
+  #
+  # Retention: Prometheus keeps 15d (see docker-compose command flags) while
+  # PostgreSQL keeps 180d of enriched events. Prometheus is for rates and
+  # alerting, Postgres is the system of record for the dashboard.
+  - job_name: honeybadger-fixtures
+    metrics_path: /metrics
+    scrape_interval: 15s
+    static_configs: [{targets: ["fixtures:9101"], labels: {env: fixtures}}]
