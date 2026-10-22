@@ -116,7 +116,7 @@ export function EventDetailDrawer({ event, onClose }: EventDetailDrawerProps) {
   return (
     <>
       <div
-        className="fixed inset-0 z-40 bg-[#060705]/80"
+        className="fixed inset-0 z-40 bg-[#05080a]/80"
         onClick={onClose}
         aria-hidden="true"
       />

@@ -259,7 +259,7 @@ export function GeoMap({
                 tabIndex={0}
                 role="button"
                 aria-label={`${bubble.ip}, ${bubble.country ?? "unknown country"}, ${bubble.count} events`}
-                className="cursor-pointer focus-visible:stroke-[#e9e6d9] focus-visible:outline-none"
+                className="cursor-pointer focus-visible:stroke-[#e2e9e8] focus-visible:outline-none"
                 onMouseEnter={(event) => showHover(event, bubble)}
                 onFocus={() => setHover({ bubble, x: bubble.x, y: bubble.y - 6 })}
                 onBlur={() => setHover(null)}

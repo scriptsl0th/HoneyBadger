@@ -243,7 +243,7 @@ export function ActivityChart({
                   width={46}
                 />
                 <Tooltip
-                  cursor={{ fill: "rgba(233,230,217,0.04)" }}
+                  cursor={{ fill: "rgba(226,233,232,0.04)" }}
                   content={<ActivityTooltip series={series} />}
                 />
                 {series.map((item) => (

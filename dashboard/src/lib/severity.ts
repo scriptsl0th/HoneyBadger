@@ -34,10 +34,10 @@ export const SEVERITY_LABELS: Record<Severity, string> = {
  * fills; at label size they would fall under 4.5:1 on the ink surface.
  */
 export const SEVERITY_TEXT_COLORS: Record<Severity, string> = {
-  low: "#9dbfb7",
-  medium: "#e2b866",
-  high: "#e3996f",
-  critical: "#e07770",
+  low: "#a5c2d2",
+  medium: "#e2c47e",
+  high: "#e6a17e",
+  critical: "#ec8a86",
 };
 
 export function isSeverity(value: unknown): value is Severity {

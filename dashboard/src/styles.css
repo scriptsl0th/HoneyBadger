@@ -54,32 +54,32 @@
 }
 
 @theme {
-  /* Warm charcoal + bone. No blue-black, no tinted glass. */
-  --color-console-bg: #0b0c0a;
-  --color-console-panel: #121410;
-  --color-console-panel-2: #171a15;
-  --color-console-rule: #272b23;
-  --color-console-border: #272b23;
-  --color-console-border-strong: #3b4136;
-  --color-console-text: #e9e6d9;
-  --color-console-muted: #9b9e8e;
-  --color-console-faint: #828675;
+  /* Cold slate + phosphor. Ink-blue surfaces, no tinted glass. */
+  --color-console-bg: #080b0d;
+  --color-console-panel: #0d1215;
+  --color-console-panel-2: #121a1e;
+  --color-console-rule: #1f2a30;
+  --color-console-border: #1f2a30;
+  --color-console-border-strong: #33424a;
+  --color-console-text: #e2e9e8;
+  --color-console-muted: #93a4a8;
+  --color-console-faint: #7f9297;
 
-  /* Honey is the single brand signal. Used sparingly. */
-  --color-console-accent: #d9a441;
-  --color-console-accent-dim: #8a6a2b;
+  /* Phosphor is the single brand signal. Used sparingly. */
+  --color-console-accent: #72e3a4;
+  --color-console-accent-dim: #3d7f5e;
 
-  /* Severity: teal → honey → rust → brick (not a rainbow). */
-  --color-sev-low: #7ba39a;
-  --color-sev-medium: #d9a441;
-  --color-sev-high: #d1794d;
-  --color-sev-critical: #cb4b43;
+  /* Severity: steel → brass → copper → signal red (cold to hot). */
+  --color-sev-low: #6e93a8;
+  --color-sev-medium: #cfa84f;
+  --color-sev-high: #d3764b;
+  --color-sev-critical: #d94f4a;
 
   /* Protocol hues, kept desaturated so severity stays dominant. */
-  --color-svc-ssh: #b3a5ce;
-  --color-svc-http: #86a6bd;
+  --color-svc-ssh: #a78bd1;
+  --color-svc-http: #5fa8c7;
 
-  --color-live: #93ae79;
+  --color-live: #63d69b;
 
   --font-sans:
     "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
@@ -130,21 +130,21 @@
 
 :root {
   color-scheme: dark;
-  --bg: #0b0c0a;
-  --panel: #121410;
-  --panel-2: #171a15;
-  --rule: #272b23;
-  --rule-strong: #3b4136;
-  --text: #e9e6d9;
-  --muted: #9b9e8e;
-  --faint: #828675;
-  --accent: #d9a441;
-  --sev-low: #7ba39a;
-  --sev-medium: #d9a441;
-  --sev-high: #d1794d;
-  --sev-critical: #cb4b43;
-  --svc-ssh: #b3a5ce;
-  --svc-http: #86a6bd;
+  --bg: #080b0d;
+  --panel: #0d1215;
+  --panel-2: #121a1e;
+  --rule: #1f2a30;
+  --rule-strong: #33424a;
+  --text: #e2e9e8;
+  --muted: #93a4a8;
+  --faint: #7f9297;
+  --accent: #72e3a4;
+  --sev-low: #6e93a8;
+  --sev-medium: #cfa84f;
+  --sev-high: #d3764b;
+  --sev-critical: #d94f4a;
+  --svc-ssh: #a78bd1;
+  --svc-http: #5fa8c7;
 }
 
 * {
@@ -172,8 +172,8 @@ body {
 }
 
 ::selection {
-  background: rgb(217 164 65 / 26%);
-  color: #fffdf6;
+  background: rgb(114 227 164 / 22%);
+  color: #f1fbf6;
 }
 
 :focus-visible {
@@ -203,13 +203,13 @@ select:not(:disabled) {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2f342a;
+  background: #26343b;
   border: 3px solid var(--bg);
   border-radius: 0;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #454b3e;
+  background: #3b4d56;
 }
 
 /* Charts inherit the console ink rather than Recharts defaults. */
@@ -225,7 +225,7 @@ select:not(:disabled) {
 
 .scrollbar-thin {
   scrollbar-width: thin;
-  scrollbar-color: #2f342a transparent;
+  scrollbar-color: #26343b transparent;
 }
 
 /* Small caps used for instrument labels. */

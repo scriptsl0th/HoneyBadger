@@ -8,17 +8,17 @@ const LABELS: Record<LiveStatus, string> = {
 };
 
 const LED: Record<LiveStatus, string> = {
-  live: "bg-[#93ae79]",
-  reconnecting: "bg-[#d9a441]",
-  connecting: "bg-[#d9a441]",
-  polling: "bg-[#86a6bd]",
+  live: "bg-[#63d69b]",
+  reconnecting: "bg-[#cfa84f]",
+  connecting: "bg-[#cfa84f]",
+  polling: "bg-[#5fa8c7]",
 };
 
 const TEXT: Record<LiveStatus, string> = {
   live: "text-console-live",
   reconnecting: "text-console-accent",
   connecting: "text-console-accent",
-  polling: "text-[#a3c0d3]",
+  polling: "text-[#93c8de]",
 };
 
 interface ConnectionBadgeProps {

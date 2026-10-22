@@ -15,14 +15,14 @@ type Tone =
 const TONES: Record<Tone, string> = {
   neutral: "border-console-border-strong bg-transparent text-console-muted",
   outline: "border-console-border bg-transparent text-console-muted",
-  ssh: "border-[#b3a5ce]/45 bg-transparent text-[#c9bde0]",
-  http: "border-[#86a6bd]/45 bg-transparent text-[#a3c0d3]",
-  low: "border-[#7ba39a]/45 bg-transparent text-[#9dbfb7]",
-  medium: "border-[#d9a441]/45 bg-transparent text-[#e2b866]",
-  high: "border-[#d1794d]/50 bg-transparent text-[#e3996f]",
-  critical: "border-[#cb4b43]/55 bg-transparent text-[#e07770]",
-  success: "border-[#93ae79]/45 bg-transparent text-[#aec596]",
-  warning: "border-[#d9a441]/45 bg-transparent text-[#e2b866]",
+  ssh: "border-[#a78bd1]/45 bg-transparent text-[#c4b1e4]",
+  http: "border-[#5fa8c7]/45 bg-transparent text-[#93c8de]",
+  low: "border-[#6e93a8]/45 bg-transparent text-[#a5c2d2]",
+  medium: "border-[#cfa84f]/45 bg-transparent text-[#e2c47e]",
+  high: "border-[#d3764b]/50 bg-transparent text-[#e6a17e]",
+  critical: "border-[#d94f4a]/55 bg-transparent text-[#ec8a86]",
+  success: "border-[#63d69b]/45 bg-transparent text-[#96e8bd]",
+  warning: "border-[#cfa84f]/45 bg-transparent text-[#e2c47e]",
 };
 
 interface BadgeProps {

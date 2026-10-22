@@ -38,11 +38,11 @@ export function TopBar({
               <path
                 d="M16 2.8 27.4 9.4v13.2L16 29.2 4.6 22.6V9.4Z"
                 fill="none"
-                stroke="#d9a441"
+                stroke="#72e3a4"
                 strokeWidth="1.3"
               />
-              <path d="M16 9.6 21.8 13v6.2L16 22.4l-5.8-3.2V13Z" fill="#d9a441" />
-              <path d="M16 13.7 18.7 15.2v3.1L16 19.8l-2.7-1.5v-3.1Z" fill="#0b0c0a" />
+              <path d="M16 9.6 21.8 13v6.2L16 22.4l-5.8-3.2V13Z" fill="#72e3a4" />
+              <path d="M16 13.7 18.7 15.2v3.1L16 19.8l-2.7-1.5v-3.1Z" fill="#080b0d" />
             </svg>
           </a>
 
