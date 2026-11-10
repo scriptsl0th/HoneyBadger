@@ -11,6 +11,12 @@ import asyncssh
 from bus import EventBus
 from config import Settings
 from fakeshell import FakeShell
+from metrics import (
+    record_ssh_command,
+    record_ssh_connection,
+    record_ssh_handshake,
+    record_ssh_auth,
+)
 from schemas import SSH_HANDSHAKE_KIND, LoginInfo, RawEvent, Service
 
 logger = logging.getLogger(__name__)
@@ -137,6 +143,9 @@ class SshHoneypotServer(asyncssh.SSHServer):
             self._destination_ip = sockname[0]
             self._destination_port = sockname[1]
 
+        # Record SSH connection metric
+        record_ssh_connection()
+
         # The client identification string is only known after the version
         # exchange, which asyncssh performs *after* connection_made().
         self._handshake_task = asyncio.create_task(
@@ -174,6 +183,7 @@ class SshHoneypotServer(asyncssh.SSHServer):
             username=username, password_hash=hash_password(password)
         )
         self._credentials = credentials
+        record_ssh_auth(username)
         self._bus.publish(
             RawEvent(
                 service=Service.SSH,
@@ -215,12 +225,15 @@ class SshHoneypotServer(asyncssh.SSHServer):
             )
         except ValueError:
             logger.warning("could not build handshake event for %r", line)
+            record_ssh_handshake(True)
             return
+        record_ssh_handshake(False)
         self._bus.publish(event)
 
     def publish_command(self, command: str, payload_url: str | None = None) -> None:
         if self._credentials is None:
             return
+        record_ssh_command(command)
         self._bus.publish(
             RawEvent(
                 service=Service.SSH,

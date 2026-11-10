@@ -23,7 +23,8 @@ services:
       POSTGRES_DB: honeybadger
     ports:
       # Loopback only: the database is never exposed on the LAN.
-      - "127.0.0.1:5432:5432"
+      # Using 15432 to avoid conflict with host postgres on 5432
+      - "127.0.0.1:15432:5432"
     volumes:
       - hb-postgres-data:/var/lib/postgresql/data
     healthcheck:

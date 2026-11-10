@@ -1,12 +1,6 @@
 """Read-only REST + WebSocket bridge for the dashboard.
 
-This is the in-memory preview of slice 4: it implements the shapes in
-``docs/API.md`` so the React dashboard can be exercised against the real SSH
-honeypot today. Events live in RAM (a restart clears the feed); PostgreSQL,
-GeoIP and ATT&CK enrichment arrive with slices 3 and 4.
-
-Only ``auth``/``command`` events become dashboard rows. SSH handshake banners
-are connection telemetry, not attacker actions, so they stay off the feed.
+Uses enriched events from the pipeline and queries PostgreSQL via storage repositories.
 """
 
 import asyncio
@@ -14,20 +8,26 @@ import datetime as dt
 import json
 import time
 import typing as t
-from collections import Counter, deque
+from collections import Counter
 
 from aiohttp import WSMsgType, web
 
+from bus import EventBus
 from config import Settings
+from metrics import (
+    record_api_latency,
+    record_api_request,
+    record_ws_connections,
+)
 from schemas import (
-    SSH_HANDSHAKE_KIND,
+    EnrichedEvent,
     EventOut,
-    RawEvent,
     Service,
     Severity,
 )
+from storage import Storage
 
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 
 # window -> (duration, bucket size in seconds)
 WINDOWS: dict[str, tuple[dt.timedelta, int]] = {
@@ -75,39 +75,32 @@ def _bad(detail: str) -> web.Response:
     )
 
 
-class EventStore:
-    """Bounded in-memory event log with live WebSocket fan-out."""
+class EnrichedEventStore:
+    """Consumes enriched events from bus and provides WebSocket fan-out."""
 
-    def __init__(self, capacity: int = 10_000) -> None:
-        self._events: deque[EventOut] = deque(maxlen=capacity)
+    def __init__(self, enriched_bus: EventBus[EnrichedEvent], storage: Storage) -> None:
+        self._enriched_bus = enriched_bus
+        self._storage = storage
         self._sockets: set[web.WebSocketResponse] = set()
         self._tasks: set[asyncio.Task[None]] = set()
         self._started = time.monotonic()
 
-    # -- ingestion --------------------------------------------------------
+    async def start(self) -> None:
+        """Subscribe to enriched bus."""
+        self._enriched_bus.subscribe(self._on_enriched_event)
+        await self._enriched_bus.start()
 
-    async def record(self, raw: RawEvent) -> None:
-        """Bus listener: keep the event, then push it to live clients."""
-        if raw.additional_info is not None:
-            if raw.additional_info.get("event_kind") == SSH_HANDSHAKE_KIND:
-                return
+    async def stop(self) -> None:
+        """Stop consuming and close connections."""
+        for task in list(self._tasks):
+            task.cancel()
+        if self._tasks:
+            await asyncio.gather(*self._tasks, return_exceptions=True)
+        self._tasks.clear()
+        await self._enriched_bus.stop()
 
-        event = EventOut(
-            service=raw.service,
-            source_ip=raw.source_ip,
-            timestamp=raw.timestamp,
-            login_info=raw.login_info,
-            user_agent=raw.user_agent,
-            http_method=raw.http_method,
-            http_path=raw.http_path,
-            http_status_code=raw.http_status_code,
-            command=raw.command,
-            payload_url=raw.payload_url,
-            payload_hash=raw.payload_hash,
-            payload_size=raw.payload_size,
-        )
-        self._events.append(event)
-
+    async def _on_enriched_event(self, event: EnrichedEvent) -> None:
+        """Handle enriched event from pipeline - broadcast to WebSocket clients."""
         if self._sockets:
             message = {"type": "event", "event": event.model_dump(mode="json")}
             for socket in list(self._sockets):
@@ -126,272 +119,39 @@ class EventStore:
         except (ConnectionError, RuntimeError):
             self._sockets.discard(socket)
 
-    # -- WebSocket bookkeeping -------------------------------------------
-
     def register(self, socket: web.WebSocketResponse) -> None:
         self._sockets.add(socket)
+        record_ws_connections(len(self._sockets))
 
     def unregister(self, socket: web.WebSocketResponse) -> None:
         self._sockets.discard(socket)
-
-    async def close(self) -> None:
-        for task in list(self._tasks):
-            task.cancel()
-        if self._tasks:
-            await asyncio.gather(*self._tasks, return_exceptions=True)
-        self._tasks.clear()
-
-    # -- queries ----------------------------------------------------------
+        record_ws_connections(len(self._sockets))
 
     @property
     def uptime_s(self) -> int:
         return int(time.monotonic() - self._started)
 
-    def query(
-        self,
-        *,
-        limit: int = 50,
-        service: str | None = None,
-        severity: str | None = None,
-        technique: str | None = None,
-        since: dt.datetime | None = None,
-        until: dt.datetime | None = None,
-    ) -> list[EventOut]:
-        """Newest first, with the filters from ``docs/API.md`` section 4."""
-        items: list[EventOut] = []
-        for event in reversed(self._events):
-            if service is not None and event.service.value != service:
-                continue
-            if (
-                severity is not None
-                and (event.severity is None or event.severity.value != severity)
-            ):
-                continue
-            if technique is not None and event.technique_id != technique:
-                continue
-            if since is not None and event.timestamp < since:
-                continue
-            if until is not None and event.timestamp > until:
-                continue
-            items.append(event)
-            if len(items) >= limit:
-                break
-        return items
 
-    def stats(self, window: str) -> dict[str, t.Any]:
-        now = _now()
-        delta = WINDOWS[window][0]
-        start = now - delta
-        current = [
-            event for event in self._events if start <= event.timestamp <= now
-        ]
-        previous = [
-            event
-            for event in self._events
-            if start - delta <= event.timestamp < start
-        ]
-
-        credentials: dict[tuple[str, str], list[t.Any]] = {}
-        sources: dict[str, dict[str, t.Any]] = {}
-        paths: Counter[str] = Counter()
-        payloads: dict[str, dict[str, t.Any]] = {}
-
-        for event in current:
-            if event.login_info is not None:
-                username = event.login_info.username
-                password_hash = event.login_info.password_hash
-                if username and password_hash:
-                    key = (username, password_hash)
-                    entry = credentials.setdefault(
-                        key, [0, event.timestamp]
-                    )
-                    entry[0] += 1
-                    entry[1] = max(entry[1], event.timestamp)
-
-            ip = str(event.source_ip)
-            source = sources.setdefault(
-                ip,
-                {
-                    "source_ip": ip,
-                    "country": None,
-                    "city": None,
-                    "latitude": None,
-                    "longitude": None,
-                    "asn": None,
-                    "count": 0,
-                    "last_seen": event.timestamp,
-                },
-            )
-            source["count"] += 1
-            source["last_seen"] = max(source["last_seen"], event.timestamp)
-            if event.geo_info is not None:
-                source["country"] = source["country"] or event.geo_info.country
-                source["city"] = source["city"] or event.geo_info.city
-                source["latitude"] = (
-                    source["latitude"]
-                    if source["latitude"] is not None
-                    else event.geo_info.latitude
-                )
-                source["longitude"] = (
-                    source["longitude"]
-                    if source["longitude"] is not None
-                    else event.geo_info.longitude
-                )
-                source["asn"] = source["asn"] or event.geo_info.asn
-
-            if event.http_path:
-                paths[event.http_path] += 1
-
-            if event.payload_url:
-                payload = payloads.setdefault(
-                    event.payload_url,
-                    {
-                        "url": event.payload_url,
-                        "hash": None,
-                        "size": None,
-                        "quarantined": False,
-                        "first_seen": event.timestamp,
-                    },
-                )
-                payload["hash"] = payload["hash"] or event.payload_hash
-                payload["size"] = (
-                    payload["size"]
-                    if payload["size"] is not None
-                    else event.payload_size
-                )
-                payload["first_seen"] = min(
-                    payload["first_seen"], event.timestamp
-                )
-
-        top_credentials = [
-            {
-                "username": username,
-                "password_hash": password_hash,
-                "count": count,
-                "last_seen": _iso(last_seen),
-            }
-            for (username, password_hash), (count, last_seen) in sorted(
-                credentials.items(), key=lambda item: (-item[1][0], item[0])
-            )[:TOP_N]
-        ]
-
-        top_sources = sorted(
-            sources.values(), key=lambda item: (-item["count"], item["source_ip"])
-        )[:TOP_N]
-        for source in top_sources:
-            source["last_seen"] = _iso(source["last_seen"])
-
-        return {
-            "window": window,
-            "generated_at": _iso(now),
-            "totals": {
-                "events": len(current),
-                "events_previous": len(previous),
-                "events_per_minute": round(
-                    len(current) / max(1.0, delta.total_seconds() / 60)
-                ),
-                "unique_sources": len({str(event.source_ip) for event in current}),
-                "unique_credentials": len(credentials),
-                "payloads": len(payloads),
-                "high_or_critical": sum(
-                    1
-                    for event in current
-                    if event.severity in (Severity.HIGH, Severity.CRITICAL)
-                ),
-            },
-            "by_service": [
-                {"service": service.value, "count": count}
-                for service, count in Counter(
-                    event.service for event in current
-                ).most_common()
-            ],
-            "by_severity": [
-                {"severity": severity.value, "count": count}
-                for severity, count in Counter(
-                    event.severity
-                    for event in current
-                    if event.severity is not None
-                ).most_common()
-            ],
-            "by_technique": [
-                {"technique_id": technique, "count": count}
-                for technique, count in Counter(
-                    event.technique_id
-                    for event in current
-                    if event.technique_id is not None
-                ).most_common()
-            ],
-            "top_credentials": top_credentials,
-            "top_sources": top_sources,
-            "top_paths": [
-                {"http_path": path, "count": count}
-                for path, count in paths.most_common(TOP_N)
-            ],
-            "payloads": [
-                {**payload, "first_seen": _iso(payload["first_seen"])}
-                for payload in sorted(
-                    payloads.values(),
-                    key=lambda item: item["first_seen"],
-                    reverse=True,
-                )[:TOP_N]
-            ],
-        }
-
-    def timeseries(self, window: str) -> dict[str, t.Any]:
-        delta, bucket_seconds = WINDOWS[window]
-        now = _now()
-        first = int((now - delta).timestamp()) // bucket_seconds * bucket_seconds
-        last = int(now.timestamp()) // bucket_seconds * bucket_seconds
-
-        buckets: dict[int, dict[str, t.Any]] = {}
-        cursor = first
-        while cursor <= last:
-            buckets[cursor] = {
-                "ts": _iso(dt.datetime.fromtimestamp(cursor, dt.timezone.utc)),
-                "total": 0,
-                "ssh": 0,
-                "http": 0,
-                "low": 0,
-                "medium": 0,
-                "high": 0,
-                "critical": 0,
-            }
-            cursor += bucket_seconds
-
-        for event in self._events:
-            epoch = int(event.timestamp.timestamp())
-            key = epoch - epoch % bucket_seconds
-            point = buckets.get(key)
-            if point is None:
-                continue
-            point["total"] += 1
-            point[event.service.value] += 1
-            if event.severity is not None:
-                point[event.severity.value] += 1
-
-        return {
-            "window": window,
-            "bucket_seconds": bucket_seconds,
-            "points": [buckets[key] for key in sorted(buckets)],
-        }
+STORE_KEY: web.AppKey[EnrichedEventStore] = web.AppKey("store", EnrichedEventStore)
+STORAGE_KEY: web.AppKey[Storage] = web.AppKey("storage", Storage)
 
 
-# -- HTTP handlers ---------------------------------------------------------
-
-
-STORE_KEY: web.AppKey[EventStore] = web.AppKey("store", EventStore)
-
-
-def _store(request: web.Request) -> EventStore:
+def _store(request: web.Request) -> EnrichedEventStore:
     return request.app[STORE_KEY]
+
+
+def _storage(request: web.Request) -> Storage:
+    return request.app[STORAGE_KEY]
 
 
 async def _health(request: web.Request) -> web.Response:
     store = _store(request)
+    storage = _storage(request)
+    db_ok = await storage.health_check()
     return web.json_response(
         {
             "status": "ok",
-            "db": "ok",
+            "db": "ok" if db_ok else "error",
             "version": VERSION,
             "uptime_s": store.uptime_s,
         }
@@ -400,6 +160,9 @@ async def _health(request: web.Request) -> web.Response:
 
 async def _events(request: web.Request) -> web.Response:
     store = _store(request)
+    storage = _storage(request)
+
+    start_time = time.time()
 
     raw_limit = request.query.get("limit", "50")
     try:
@@ -433,7 +196,8 @@ async def _events(request: web.Request) -> web.Response:
         if until is None:
             return _bad("until must be an RFC 3339 timestamp")
 
-    items = store.query(
+    # Query from PostgreSQL
+    items = await storage.events.query(
         limit=limit,
         service=service,
         severity=severity,
@@ -441,6 +205,10 @@ async def _events(request: web.Request) -> web.Response:
         since=since,
         until=until,
     )
+
+    record_api_request("/events", request.method, 200)
+    record_api_latency("/events", time.time() - start_time)
+
     return web.json_response(
         {"items": [event.model_dump(mode="json") for event in items]}
     )
@@ -454,19 +222,37 @@ def _window(request: web.Request) -> tuple[str | None, web.Response | None]:
 
 
 async def _stats(request: web.Request) -> t.Any:
+    start_time = time.time()
     window, error = _window(request)
     if error is not None:
         return error
     assert window is not None
-    return web.json_response(_store(request).stats(window))
+
+    storage = _storage(request)
+    delta = WINDOWS[window][0]
+    stats = await storage.events.stats(delta)
+
+    record_api_request("/stats", request.method, 200)
+    record_api_latency("/stats", time.time() - start_time)
+
+    return web.json_response(stats)
 
 
 async def _timeseries(request: web.Request) -> t.Any:
+    start_time = time.time()
     window, error = _window(request)
     if error is not None:
         return error
     assert window is not None
-    return web.json_response(_store(request).timeseries(window))
+
+    storage = _storage(request)
+    delta, bucket_seconds = WINDOWS[window]
+    timeseries = await storage.events.timeseries(delta, bucket_seconds)
+
+    record_api_request("/stats/timeseries", request.method, 200)
+    record_api_latency("/stats/timeseries", time.time() - start_time)
+
+    return web.json_response(timeseries)
 
 
 async def _websocket(request: web.Request) -> web.WebSocketResponse:
@@ -492,28 +278,42 @@ async def _websocket(request: web.Request) -> web.WebSocketResponse:
     return socket
 
 
-def create_app(store: EventStore | None = None) -> web.Application:
-    store = store or EventStore()
+def create_app(
+    enriched_bus: EventBus[EnrichedEvent] | None = None,
+    storage: Storage | None = None,
+) -> web.Application:
+    if enriched_bus is None or storage is None:
+        raise ValueError("enriched_bus and storage are required")
+
+    store = EnrichedEventStore(enriched_bus, storage)
     app = web.Application()
     app[STORE_KEY] = store
+    app[STORAGE_KEY] = storage
     app.router.add_get("/health", _health)
     app.router.add_get("/events", _events)
     app.router.add_get("/stats", _stats)
     app.router.add_get("/stats/timeseries", _timeseries)
     app.router.add_get("/ws/events", _websocket)
 
-    async def cleanup(_: web.Application) -> None:
-        await store.close()
+    async def on_startup(app: web.Application) -> None:
+        await store.start()
 
-    app.on_cleanup.append(cleanup)
+    async def on_cleanup(app: web.Application) -> None:
+        await store.stop()
+
+    app.on_startup.append(on_startup)
+    app.on_cleanup.append(on_cleanup)
     return app
 
 
 async def start_api_server(
-    settings: Settings, store: EventStore
+    settings: Settings,
+    enriched_bus: EventBus[EnrichedEvent],
+    storage: Storage,
 ) -> web.AppRunner:
     """Bind the REST/WebSocket server; caller owns shutdown via cleanup()."""
-    runner = web.AppRunner(create_app(store))
+    app = create_app(enriched_bus, storage)
+    runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, settings.api_host, settings.api_port)
     await site.start()
