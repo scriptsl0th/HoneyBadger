@@ -42,7 +42,7 @@ function KpiCell({
       </div>
       <div className="mt-2 flex items-baseline gap-1.5">
         <span
-          className={`font-display text-[29px] leading-none font-semibold tabular-nums ${valueClassName}`}
+          className={`font-mono text-[24px] leading-none font-medium tracking-[-0.03em] tabular-nums ${valueClassName}`}
           aria-busy={loading || undefined}
         >
           {value}

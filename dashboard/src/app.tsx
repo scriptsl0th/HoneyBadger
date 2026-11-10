@@ -6,8 +6,10 @@ import { TechniqueBars } from "./components/charts/TechniqueBars";
 import { EventDetailDrawer } from "./components/feed/EventDetailDrawer";
 import { EventTable } from "./components/feed/EventTable";
 import { KpiRow } from "./components/layout/KpiRow";
+import { ConsoleBar } from "./components/layout/ConsoleBar";
 import { SectionHeader } from "./components/layout/SectionHeader";
 import { SideRail } from "./components/layout/SideRail";
+import { StatusBar } from "./components/layout/StatusBar";
 import { TopBar } from "./components/layout/TopBar";
 import { GeoMap } from "./components/map/GeoMap";
 import { Payloads } from "./components/panels/Payloads";
@@ -50,12 +52,12 @@ export default function App() {
         onWindowChange={filters.setWindowKey}
         connection={live.status}
         attempt={live.attempt}
-        totalEvents={stats.data?.totals.events ?? null}
-        generatedAt={stats.data?.generated_at ?? null}
         mock={IS_MOCK}
       />
 
-      <main className="mx-auto max-w-[1720px] px-4 pt-3 pb-6 sm:px-6">
+      <ConsoleBar filters={filters} />
+
+      <main className="mx-auto max-w-[1720px] px-4 pt-3 pb-12 sm:px-6">
         <div className="space-y-2.5">
           <SectionHeader
             index="01"
@@ -175,16 +177,16 @@ export default function App() {
             </div>
           </div>
 
-          <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-console-border pt-3 pb-1 font-mono text-[8.5px] tracking-[0.1em] text-console-faint uppercase">
-            <span>Read-only console · hashes only · payloads never fetched</span>
-            <span className="normal-case">
-              {stats.data
-                ? `stats generated ${formatClock(stats.data.generated_at)} · auto-refresh`
-                : "awaiting telemetry"}
-            </span>
-          </footer>
         </div>
       </main>
+
+      <StatusBar
+        status={live.status}
+        windowKey={filters.windowKey}
+        totalEvents={stats.data?.totals.events ?? null}
+        generatedAt={stats.data?.generated_at ?? null}
+        activeFilterCount={filters.activeFilterCount}
+      />
 
       <EventDetailDrawer event={selectedEvent} onClose={handleCloseDrawer} />
     </div>

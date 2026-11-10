@@ -1,8 +1,6 @@
 import type { WindowKey } from "../../types";
-import { compactNumber } from "../../lib/format";
 import type { LiveStatus } from "../../ws/client";
 import { ConnectionBadge } from "../ui/ConnectionBadge";
-import { UtcClock } from "./UtcClock";
 
 const WINDOWS: readonly WindowKey[] = ["15m", "1h", "6h", "24h", "7d"];
 
@@ -11,8 +9,6 @@ interface TopBarProps {
   onWindowChange: (window: WindowKey) => void;
   connection: LiveStatus;
   attempt: number;
-  totalEvents: number | null;
-  generatedAt?: string | null;
   mock: boolean;
 }
 
@@ -21,8 +17,6 @@ export function TopBar({
   onWindowChange,
   connection,
   attempt,
-  totalEvents,
-  generatedAt,
   mock,
 }: TopBarProps) {
   return (
@@ -71,18 +65,7 @@ export function TopBar({
         </div>
 
         <div className="ml-auto flex flex-wrap items-center gap-x-4 gap-y-2">
-          <UtcClock />
           <ConnectionBadge status={connection} attempt={attempt} />
-
-          <div
-            className="hidden border-l border-console-border pl-4 sm:block"
-            title={generatedAt ? `Stats generated at ${generatedAt}` : undefined}
-          >
-            <div className="label text-console-faint">Events / {windowKey}</div>
-            <div className="mt-1 font-display text-[18px] leading-none font-semibold text-console-text tabular-nums">
-              {totalEvents === null ? "—" : compactNumber(totalEvents)}
-            </div>
-          </div>
 
           <div
             role="group"

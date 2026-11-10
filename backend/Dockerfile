@@ -21,6 +21,10 @@ RUN useradd --create-home --uid 10001 --shell /usr/sbin/nologin hb \
     && mkdir -p /opt/hb-quarantine \
     && chown -R hb:hb /opt/hb-quarantine
 
+# Migrations run as the unprivileged user; make the script executable explicitly
+# because checkouts on Windows may not preserve the exec bit.
+RUN chmod +x /app/entrypoint.sh
+
 USER hb
 
 # SSH honeypot, HTTP honeypot (reserved), metrics (reserved), API + WebSocket.
@@ -29,4 +33,5 @@ EXPOSE 8022 8081 8000 8090
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
     CMD python -c "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8090/health', timeout=2).status == 200 else 1)"
 
+ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["python", "main.py"]

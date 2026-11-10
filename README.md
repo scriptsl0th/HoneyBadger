@@ -299,7 +299,7 @@ docker-compose up -d
 docker-compose logs -f
 ```
 
-If this is your first run, Docker pulls the official PostgreSQL, Prometheus, Alertmanager and Grafana images and builds the dashboard and backend images. The backend runs the SSH honeypot and the intake API/WebSocket; PostgreSQL is healthchecked, so the backend waits for it. The monitoring stack can also start on its own, and the dashboard's nginx keeps serving the SPA when the backend is down.
+If this is your first run, Docker pulls the official PostgreSQL, Prometheus, Alertmanager and Grafana images and builds the dashboard and backend images. The backend runs the SSH honeypot and the intake API/WebSocket; PostgreSQL is healthchecked, so the backend waits for it. The backend container applies pending schema migrations (`alembic upgrade head`) on start; to run them by hand: `docker compose exec backend alembic upgrade head`. The monitoring stack can also start on its own, and the dashboard's nginx keeps serving the SPA when the backend is down.
 
 Preview Grafana with synthetic metrics while the backend is still being built:
 
@@ -312,6 +312,8 @@ Then point your browser at `http://localhost:3000` → send traffic at ports **8
 
 ```bash
 docker-compose exec backend python -m sim.simulate
+# Send any number of synthetic SSH attacks:
+docker-compose exec backend python -m sim.simulate --count 25 --delay 0.1
 ```
 
 You should immediately see synthetic attacker events appear in the dashboard's live feed, tagged with their MITRE technique, and land on the maps and charts.

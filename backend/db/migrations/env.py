@@ -10,8 +10,9 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 
-# Add backend to path for imports
-sys.path.append(str(Path(__file__).parent.parent))
+# Add the backend root (/app) to the path so `config` and `db` import cleanly.
+# env.py lives in <backend>/db/migrations, hence three parents.
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
 from config import get_settings
 from db.models import Base

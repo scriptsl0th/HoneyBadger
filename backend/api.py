@@ -150,11 +150,12 @@ async def _health(request: web.Request) -> web.Response:
     db_ok = await storage.health_check()
     return web.json_response(
         {
-            "status": "ok",
+            "status": "ok" if db_ok else "degraded",
             "db": "ok" if db_ok else "error",
             "version": VERSION,
             "uptime_s": store.uptime_s,
-        }
+        },
+        status=200 if db_ok else 503,
     )
 
 

@@ -11,7 +11,7 @@ function utcTime(date: Date): string {
 }
 
 /** Wall clock readout. The console reports all telemetry in UTC. */
-export function UtcClock() {
+export function UtcClock({ compact = false }: { compact?: boolean }) {
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
@@ -20,13 +20,17 @@ export function UtcClock() {
   }, []);
 
   return (
-    <div className="hidden items-baseline gap-1 md:flex" title="Coordinated Universal Time">
-      <span className="font-mono text-[11px] leading-none text-console-text tabular-nums">
+    <span className="inline-flex items-baseline gap-1" title="Coordinated Universal Time">
+      <span
+        className={`font-mono leading-none text-console-text tabular-nums ${
+          compact ? "text-[9px]" : "text-[11px]"
+        }`}
+      >
         {utcTime(now)}
       </span>
       <span className="font-mono text-[8.5px] leading-none tracking-[0.14em] text-console-faint">
         UTC
       </span>
-    </div>
+    </span>
   );
 }

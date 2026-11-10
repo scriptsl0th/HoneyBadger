@@ -96,10 +96,15 @@ class Storage:
         return GeoIPCacheRepository(self)
 
     async def health_check(self) -> bool:
-        """Check database connectivity."""
+        """Check database connectivity and that the schema is migrated.
+
+        A bare ``SELECT 1`` succeeds on an empty database, which used to make a
+        schema-less backend report healthy while every real query returned 500.
+        Touching ``events`` surfaces a missing/partial migration instead.
+        """
         try:
             async with self.session() as session:
-                await session.execute(select(1))
+                await session.execute(select(Event.id).limit(1))
             record_db_up(True)
             return True
         except Exception as e:
