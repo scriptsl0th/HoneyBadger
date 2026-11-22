@@ -61,8 +61,7 @@ Thumbs.db
 Desktop.ini
 
 # --- Offline analysis data (downloaded by intrusion_analysis.ipynb; Kaggle license listed as Unknown) ---
-Train_data.csv
-Test_data.csv
+data/kaggle/
 intrusion_predictions.csv
 pair1_predictions.csv
 train_prepared.csv

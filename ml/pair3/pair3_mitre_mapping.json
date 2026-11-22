@@ -1,0 +1,37 @@
+{
+  "0": {
+    "attack_type": "Connection Scanning / Probing (Rejected)",
+    "mitre_technique": "T1595 (Active Scanning) / T1046 (Network Service Scanning)",
+    "key_indicators": "TCP, service=private, flag=REJ (rejected), rerror_rate=1.0, count=121, dst_host_count=255",
+    "confidence": "High",
+    "description": "All connections rejected (flag=REJ, rerror_rate=1.0). High connection count (121) to many destination hosts (255) with few services (4). Classic scanning behavior where attacker probes for open ports/services and gets rejected."
+  },
+  "1": {
+    "attack_type": "SYN Flood / Denial of Service",
+    "mitre_technique": "T1499 (Endpoint DoS) / T1498 (Network Denial of Service)",
+    "key_indicators": "TCP, service=private, flag=S0 (SYN), serror_rate=1.0, count=199, srv_count=11",
+    "confidence": "High",
+    "description": "All connections are SYN packets (flag=S0) with 100% SYN error rate (serror_rate=1.0). High volume (count=199) across multiple services (11). Classic SYN flood DoS pattern where attacker sends SYN packets without completing handshake."
+  },
+  "2": {
+    "attack_type": "ICMP Service Scanning / Enumeration",
+    "mitre_technique": "T1595 (Active Scanning) / T1046 (Network Service Scanning)",
+    "key_indicators": "ICMP, service=ecr_i, flag=SF, src_bytes=520, srv_count=99, same_srv_rate=1.0",
+    "confidence": "Medium-High",
+    "description": "ICMP traffic (protocol_type=icmp) with successful connections (flag=SF). Very high srv_count=99 with 100% same_srv_rate - single source connecting to many services on same host. ICMP echo reply (ecr_i) scanning/enumeration pattern."
+  },
+  "3": {
+    "attack_type": "ICMP Ping Sweep / Host Discovery",
+    "mitre_technique": "T1595.001 (Active Scanning: Scanning IP Blocks) / T1018 (Remote System Discovery)",
+    "key_indicators": "ICMP, service=eco_i, flag=SF, src_bytes=8, count=1, srv_count=6",
+    "confidence": "Medium",
+    "description": "ICMP echo requests (eco_i) with successful responses (flag=SF). Low byte count (src_bytes=8 = typical ping packet). Low connection count (1) but multiple services (6). Classic ping sweep for host discovery."
+  },
+  "normal": {
+    "attack_type": "Benign / Normal Traffic",
+    "mitre_technique": "N/A — No ATT&CK technique (baseline behavior)",
+    "key_indicators": "Mixed flags (SF, REJ, RSTO), low error rates, varied services, normal byte counts, logged_in=1 for authenticated services",
+    "confidence": "N/A",
+    "description": "Baseline for comparison. In Train_data.csv: 13,449 normal rows (53.4%). Contains successful connections (flag=SF), authenticated sessions (logged_in=1), low error rates. Use as reference to show how anomaly clusters deviate from normal behavior."
+  }
+}

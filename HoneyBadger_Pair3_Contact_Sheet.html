@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HoneyBadger Pair 3 - Presentation Contact Sheet</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #090D14;
+            color: #F1F5F9;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #374151;
+        }
+        header h1 { font-size: 2.5rem; font-weight: 700; color: #22D3EE; margin-bottom: 0.5rem; }
+        header p { color: #CBD5E1; font-size: 1.1rem; }
+        header p:last-of-type { color: #A8B6C7; font-size: 0.9rem; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+        .slide-card {
+            background: #182235;
+            border: 1px solid #374151;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+        }
+        .slide-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            border-color: #22D3EE;
+        }
+        .slide-header {
+            background: #111827;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #374151;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .slide-number {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: #94A3B8;
+        }
+        .slide-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #F1F5F9;
+        }
+        .slide-content {
+            padding: 1.25rem;
+        }
+        .slide-content h2 { font-size: 1rem; color: #22D3EE; margin-bottom: 0.75rem; }
+        .slide-content ul { list-style: none; font-size: 0.85rem; color: #CBD5E1; line-height: 1.7; }
+        .slide-content li { padding: 0.25rem 0; border-bottom: 1px solid #1e2a3e; }
+        .slide-content li:last-child { border-bottom: none; }
+        .slide-content .highlight { color: #F1F5F9; font-weight: 500; }
+        .stats {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #374151;
+            font-size: 0.8rem;
+            color: #94A3B8;
+        }
+        .stat { display: flex; align-items: center; gap: 0.35rem; }
+        .stat-value { color: #22D3EE; font-family: 'JetBrains Mono', monospace; }
+        .accent-bar {
+            height: 4px;
+            background: linear-gradient(90deg, #22D3EE, #3B82F6, #34D399, #FBBF24, #F43F5E);
+        }
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: 1fr; }
+            body { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="accent-bar"></div>
+            <h1>HONEYBADGER PAIR 3</h1>
+            <p>Profiling Network Attack Behaviors Through Unsupervised Learning</p>
+            <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #64748B;">17 Slides • Dark Cybersecurity Theme • Conference Quality</p>
+        </header>
+
+        <div class="grid">
+            <!-- Slide 1 -->
+            <div class="slide-card">
+                <div class="slide-header">
+                    <span class="slide-title">Slide 1</span>
+                    <span class="slide-number">01 / 17</span>
+                </div>
+                <div class="slide-content">
+                    <h2>Opening Title</h3>
+                    <ul>
+                        <li><span class="highlight">HONEYBADGER</span> — main title</li>
+                        <li>Profiling Network Attack Behaviors Through Unsupervised Learning</li>
+                        <li>PAIR 03 • ATTACK TYPE PROFILING • CLUSTERING</li>
+                        <li>Kaggle dataset reference & metadata</li>
+                    </ul>
+                    <div class="stats">
+                        <span class="stat"><span class="stat-value">34</span> shapes</span>
+                        <span class="stat">Cinematic</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 2 -->
+            <div class="slide-card">
+                <div class="slide-header">
+                    <span class="slide-title">Slide 2</span>
+                    <span class="slide-number">02 / 17</span>
+                </div>
+                <div class="slide-content">
+                    <h2>The Challenge</h3>
+                    <ul>
+                        <li>"11,743 Anomalies. Zero Attack-Type Labels."</li>
+                        <li>Business question: Can unsupervised learning discover meaningful behavioral groups?</li>
+                        <li>Visual: Raw anomalies → Behavioral clusters pipeline</li>
+                        <li>Problem framing for security analysts</li>
+                    </ul>
+                    <div class="stats">
+                        <span class="stat"><span class="stat-value">16</span> shapes</span>
+                        <span class="stat">Conceptual</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 3 -->
+            <div class="slide-card">
+                <div class="slide-header">
+                    <span class="slide-title">Slide 3</span>
+                    <span class="slide-number">03 / 17</span>
+                </div>
+                <div class="slide-content">
+                    <h2>Experiment at a Glance</h3>
+                    <ul>
+                        <li>4 metric cards: 25,192 total / 13,449 normal / 11,743 anomaly / 41 features</li>
+                        <li>7-stage analytical pipeline visualization</li>
+                        <li>DATASET → FILTER → FEATURE ENG → PCA → CLUSTERING → EVAL → PROFILES</li>
+                        <li>Note: Clustering ONLY on anomalies</li>
+                    </ul>
+                    <div class="stats">
+                        <span class="stat"><span class="stat-value">55</span> shapes</span>
+                        <span class="stat">Pipeline</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 4 -->
+            <div class="slide-card">
+                <div class="slide-header">
+                    <span class="slide-title">Slide 4</span>
+                    <span class="slide-number">04 / 17</span>
+                </div>
+                <div class="slide-content">
+                    <h2>Preprocessing Pipeline</h3>
+                    <ul>
+                        <li>8 transformation steps documented</li>
+                        <li>Filter, drop constants, service grouping, one-hot, log1p, scaling, PCA 95%, PCA 2D</li>
+                        <li>Feature transformation summary table (7 key stats)</li>
+                        <li>Key distinction: 20D for clustering vs 2D for visualization</li>
+                    </ul>
+                    <div class="stats">
+                        <span class="stat"><span class="stat-value">55</span> shapes</span>
+                        <span class="stat">Technical</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 5 -->
+            <div class="slide-card">
+                <div class="slide-header">
+                    <span class="slide-title">Slide 5</span>
+                    <span class="slide-number">05 / 17</span>
+                </div>
+                <div class="slide-content">
+                    <h2>Three Algorithms</h3>
+                    <ul>
+                        <li>K-Means: Fixed partitioning, elbow + silhouette selection</li>
+                        <li>GMM: Probabilistic, BIC/AIC selection</li>
+                        <li>DBSCAN: Density-based, k-distance (k=21) for eps</li>
+                        <li>Each with description, selection method, final params, strengths</li>
+                    </ul>
+                    <div class="stats">
+                        <span class="stat"><span class="stat-value">37</span> shapes</span>
+                        <span class="stat">Methods</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 6 -->
+            <div class="slide-card">
+                <div class="slide-header">
+                    <span class="slide-title">Slide 6</span>
+                    <span class="slide-number">06 / 17</span>
+                </div>
+                <div class="slide-content">
+                    <h2>Model Selection Results</h3>
+                    <ul>
+                        <li>Selection criteria table: K-Means elbow/silhouette, GMM BIC/AIC, DBSCAN k-distance</li>
+                        <li>Results: K-Means k=4 (elbow), k=15 (silhouette), GMM k=14 (BIC), k=15 (AIC)</li>
+                        <li>DBSCAN eps=0.93 → 24 clusters + 718 outliers (6.1%)</li>
+                        <li>Rationale for K-Means k=4 selection</li>
+                    </ul>
+                    <div class="stats">
+                        <span class="stat"><span class="stat-value">12</span> shapes</span>
+                        <span class="stat">Table</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 7 -->
+            <div class="slide-card">
+                <div class="slide-header">
+                    <span class="slide-title">Slide 7</span>
+                    <span class="slide-number">07 / 17</span>
+                </div>
+                <div class="slide-content">
+                    <h2>Model Scorecard</h3>
+                    <ul>
+                        <li>Metrics comparison table: Silhouette, Davies-Bouldin, Calinski-Harabasz, ARI, Clusters</li>
+                        <li>K-Means: 0.608 / 0.940 / 3,610 / 0.9999 / 4</li>
+                        <li>GMM: 0.518 / 1.581 / 2,260 / 0.926 / 4</li>
+                        <li>DBSCAN: 0.725 / 0.586 / 8,955 / deterministic / 24</li>
+                        <li>Key insight box explaining trade-off</li>
+                    </ul>
+                    <div class="stats">
+                        <span class="stat"><span class="stat-value">12</span> shapes</span>
+                        <span class="stat">Metrics</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 8 -->
+            <div class="slide-card">
+                <div class="slide-header">
+                    <span class="slide-title">Slide 8</span>
+                    <span class="slide-number">08 / 17</span>
+                </div>
+                <div class="slide-content">
+                    <h2>Four Behavioral Signatures</h3>
+                    <ul>
+                        <li>Disclaimer: behavioral clusters, not verified classifications</li>
+                        <li>4 cluster cards with distinct colors (cyan, rose, emerald, amber)</li>
+                        <li>Each: size, protocol, service, flag, indicators, MITRE, confidence</li>
+                        <li>Cluster 0: 2,591 (Connection Scanning) | Cluster 1: 6,989 (SYN Flood)</li>
+                        <li>Cluster 2: 1 (ICMP Enum) | Cluster 3: 2,162 (Ping Sweep)</li>
+                    </ul>
+                    <div class="stats">
+                        <span class="stat"><span class="stat-value">73</span> shapes</span>
+                        <span class="stat">Overview</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 9 -->
+            <div class="slide-card">
+                <div class="slide-header">
+                    <span class="slide-title">Slide 9</span>
+                    <span class="slide-number">09 / 17</span>
+                </div>
+                <div class="slide-content">
+                    <h2>Cluster 0: Connection Scanning</h3>
+                    <ul>
+                        <li>Confidence: HIGH | MITRE: T1595 / T1046</li>
+                        <li>Behavioral signature: 6 key indicator cards</li>
+                        <li>TCP / private / REJ</li>
+                        <li>Interpretation: all rejected, broad target coverage</li>
+                    </ul>
+                    <div class="stats">
+                        <span class="stat"><span class="stat-value">34</span> shapes</span>
+                        <span class="stat">Detail</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 10 -->
+            <div class="slide-card">
+                <div class="slide-header">
+                    <span class="slide-title">Slide 10</span>
+                    <span class="slide-number">10 / 17</span>
+                </div>
+                <div class="slide-content">
+                    <h2>Cluster 1: SYN Flood / DoS</h3>
+                    <ul>
+                        <li>Confidence: HIGH | MITRE: T1499 / T1498</li>
+                        <li>Behavioral signature: 7 indicator cards</li>
+                        <li>TCP / private / S0</li>
+                        <li>Interpretation: 100% SYN errors, zero payload</li>
+                    </ul>
+                    <div class="stats">
+                        <span class="stat"><span class="stat-value">37</span> shapes</span>
+                        <span class="stat">Detail</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 11 -->
+            <div class="slide-card">
+                <div class="slide-header">
+                    <span class="slide-title">Slide 11</span>
+                    <span class="slide-number">11 / 17</span>
+                </div>
+                <div class="slide-content">
+                    <h2>Cluster 2: ICMP Enumeration</h3>
+                    <ul>
+                        <li>Confidence: MED-HIGH | MITRE: T1595 / T1046</li>
+                        <li>Behavioral signature: 3 indicator cards</li>
+                        <li>ICMP / ecr_i / SF</li>
+                        <li>Interpretation: high srv_count, 100% same_srv_rate</li>
+                    </ul>
+                    <div class="stats">
+                        <span class="stat"><span class="stat-value">31</span> shapes</span>
+                        <span class="stat">Detail</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 12 -->
+            <div class="slide-card">
+                <div class="slide-header">
+                    <span class="slide-title">Slide 12</span>
+                    <span class="slide-number">12 / 17</span>
+                </div>
+                <div class="slide-content">
+                    <h2>Cluster 3: ICMP Ping Sweep</h3>
+                    <ul>
+                        <li>Confidence: MEDIUM | MITRE: T1595.001 / T1018</li>
+                        <li>Behavioral signature: 4 indicator cards</li>
+                        <li>ICMP / eco_i / SF</li>
+                        <li>Interpretation: standard ping packet (8 bytes), host discovery</li>
+                    </ul>
+                    <div class="stats">
+                        <span class="stat"><span class="stat-value">34</span> shapes</span>
+                        <span class="stat">Detail</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 13 -->
+            <div class="slide-card">
+                <div class="slide-header">
+                    <span class="slide-title">Slide 13</span>
+                    <span class="slide-number">13 / 17</span>
+                </div>
+                <div class="slide-content">
+                    <h2>Normal vs Anomalous</h3>
+                    <ul>
+                        <li>Split-screen comparison (green vs rose cards)</li>
+                        <li>Normal: 7 heterogeneous characteristics</li>
+                        <li>Anomalies: 7 homogeneous cluster characteristics</li>
+                        <li>Central insight: Normal=heterogeneous, Anomalies=homogeneous</li>
+                        <li>Disclaimer: normal is synthetic</li>
+                    </ul>
+                    <div class="stats">
+                        <span class="stat"><span class="stat-value">40</span> shapes</span>
+                        <span class="stat">Comparison</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 14 -->
+            <div class="slide-card">
+                <div class="slide-header">
+                    <span class="slide-title">Slide 14</span>
+                    <span class="slide-number">14 / 17</span>
+                </div>
+                <div class="slide-content">
+                    <h2>HoneyBadger Integration</h3>
+                    <ul>
+                        <li>Three-column layout: Overlaps (green), Gaps (rose), Additions (cyan)</li>
+                        <li>Overlaps: service, failed_logins, aggregations</li>
+                        <li>Gaps: TCP flags, rates, bytes, window aggregates</li>
+                        <li>Additions: MITRE tags, credentials, GeoIP, shell commands, HTTP details</li>
+                        <li>Conclusion: validates approach, not deployable model</li>
+                    </ul>
+                    <div class="stats">
+                        <span class="stat"><span class="stat-value">35</span> shapes</span>
+                        <span class="stat">Architecture</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 15 -->
+            <div class="slide-card">
+                <div class="slide-header">
+                    <span class="slide-title">Slide 15</span>
+                    <span class="slide-number">15 / 17</span>
+                </div>
+                <div class="slide-content">
+                    <h2>Limitations & Integrity</h3>
+                    <ul>
+                        <li>8 numbered limitations with badges</li>
+                        <li>1. No ground-truth labels (central)</li>
+                        <li>2. Feature mismatch</li>
+                        <li>3. Tiny SSH subset (58 rows)</li>
+                        <li>4. Overlapping attacks</li>
+                        <li>5. Synthetic normal</li>
+                        <li>6. Spherical assumption</li>
+                        <li>7. Single snapshot</li>
+                        <li>8. Feature engineering sensitivity</li>
+                        <li>Central limitation highlight box</li>
+                    </ul>
+                    <div class="stats">
+                        <span class="stat"><span class="stat-value">38</span> shapes</span>
+                        <span class="stat">Integrity</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 16 -->
+            <div class="slide-card">
+                <div class="slide-header">
+                    <span class="slide-title">Slide 16</span>
+                    <span class="slide-number">16 / 17</span>
+                </div>
+                <div class="slide-content">
+                    <h2>The Road Ahead</h3>
+                    <ul>
+                        <li>Three-stage roadmap with timeline badges</li>
+                        <li>Stage 1 (Immediate): Validation, expert review, HB testing</li>
+                        <li>Stage 2 (Near-term): Hierarchical, semi-supervised, temporal</li>
+                        <li>Stage 3 (Long-term): Labeled data, supervised, online, dashboard</li>
+                        <li>Closing statement: "From unexplained anomalies to interpretable behavioral intelligence."</li>
+                    </ul>
+                    <div class="stats">
+                        <span class="stat"><span class="stat-value">33</span> shapes</span>
+                        <span class="stat">Roadmap</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 17 -->
+            <div class="slide-card">
+                <div class="slide-header">
+                    <span class="slide-title">Slide 17</span>
+                    <span class="slide-number">17 / 17</span>
+                </div>
+                <div class="slide-content">
+                    <h2>Q&A / Artifacts</h3>
+                    <ul>
+                        <li>"QUESTIONS?" centered, large</li>
+                        <li>4 artifact references listed</li>
+                        <li>pair3_clustering.ipynb</li>
+                        <li>pair3_cluster_assignments.csv</li>
+                        <li>pair3_cluster_profiles.csv</li>
+                        <li>pair3_mitre_mapping.json</li>
+                    </ul>
+                    <div class="stats">
+                        <span class="stat"><span class="stat-value">10</span> shapes</span>
+                        <span class="stat">Closing</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer style="text-align: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #374151; color: #64748B; font-size: 0.9rem;">
+            <p>HoneyBadger Pair 3 Clustering Presentation • Contact Sheet</p>
+            <p>Generated from HoneyBadger_Pair3_Clustering_Source.py</p>
+        </footer>
+    </div>
+</body>
+</html>

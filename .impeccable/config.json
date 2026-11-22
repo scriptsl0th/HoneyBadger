@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "createdAt": "2026-11-22T15:09:23.242Z",
+        "reason": "Contact sheet utility page - Inter chosen for clean readability in documentation context, not product UI"
+      }
+    ]
+  }
+}
