@@ -4,6 +4,7 @@ Supports multiple providers: ip-api.com (default, free), MaxMind (opt-in), and N
 """
 
 import abc
+import ipaddress
 import logging
 from typing import Optional
 
@@ -19,6 +20,14 @@ from schemas import GeoInfo
 from storage import GeoIPCacheRepository
 
 logger = logging.getLogger(__name__)
+
+
+def is_public_ip(ip: str) -> bool:
+    """True for a globally routable address; False for private/loopback/reserved ones or invalid strings."""
+    try:
+        return ipaddress.ip_address(ip).is_global
+    except ValueError:
+        return False
 
 
 class GeoIpProvider(abc.ABC):
@@ -58,6 +67,13 @@ class IpApiProvider(GeoIpProvider):
         return self._session
 
     async def lookup(self, ip: str) -> Optional[GeoInfo]:
+        # Private, loopback and reserved addresses (127.0.0.1, 10.x, 172.16-31.x, 192.168.x...) can never be
+        # geolocated: ip-api.com answers "private range". Skip the network call so local tests and demos
+        # don't wait for a timeout on every event.
+        if not is_public_ip(ip):
+            logger.debug("GeoIP skipped for non-public address %s", ip)
+            return None
+
         # Check cache first
         cached = await self._cache.get(ip)
         if cached:

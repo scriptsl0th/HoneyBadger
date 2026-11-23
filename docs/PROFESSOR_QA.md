@@ -228,6 +228,12 @@ Tous les chiffres viennent de `results/*.json` et de `docs/TEST_REPORT.md`.
 **Preuve :** `pair2_anomaly_detection.ipynb`, section 4.4.
 **Relance :** « Comment se protéger ? » → Combiner plusieurs méthodes : règles, modèle supervisé, détection d'anomalies.
 
+### 34. 🔴 Objectif 3 : comment avez-vous choisi le nombre de groupes, et les familles sont-elles vraies ?
+**Oral :** « Aucune métrique n'a de pic net, donc nous avons croisé la méthode du coude, la silhouette et Davies-Bouldin : k = 6 est le plus petit nombre qui sépare les balayages ICMP des floods ICMP. Les groupes sont réels au sens où trois algorithmes différents les retrouvent et ils reviennent à l'identique sur des données jamais vues. Mais les noms d'attaque restent des hypothèses : le jeu ne dit pas le type d'attaque. »
+**Technique :** K-Means k = 6 : silhouette 0,568, Davies-Bouldin 0,893 ; ARI ≥ 0,999 entre graines, ≥ 0,94 sur sous-échantillons de 80 %, 0,97 sur la partition de validation. Accord entre K-Means, mélange gaussien et DBSCAN : ARI de 0,90 à 0,97. Le BIC du mélange gaussien ne présente pas de minimum entre 2 et 10, donc il n'a pas servi à choisir k.
+**Preuve :** `pair3_attack_profiling.ipynb`, sections 4.2, 4.3, 4.5 et 4.6.
+**Relance :** « Pourquoi pas de famille force brute ? » → Seules 11 attaques sur 11 743 ont des échecs de connexion : trop peu pour former un groupe. HoneyBadger garde donc ses règles T1110 dans `backend/mitre.py`.
+
 ---
 
 ## Les 8 points à absolument maîtriser
@@ -235,7 +241,7 @@ Tous les chiffres viennent de `results/*.json` et de `docs/TEST_REPORT.md`.
 1. Le chemin d'un événement : capteur → bus → pipeline → base → API → tableau de bord.
 2. Pourquoi aucun mot de passe en clair et aucune commande réelle.
 3. Les règles de `classify()` et leur ordre.
-4. La différence entre l'objectif 1 (avec étiquettes) et l'objectif 2 (sans).
+4. La différence entre l'objectif 1 (avec étiquettes), l'objectif 2 (sans) et l'objectif 3 (regrouper les attaques en familles).
 5. Précision, rappel, F1, matrice de confusion, et pourquoi le rappel compte le plus.
 6. Comment la fuite de données est évitée.
 7. Pourquoi 99,8 % ne veut pas dire « parfait en vrai ».

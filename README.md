@@ -480,15 +480,24 @@ You still need a PostgreSQL instance (and a `.env` pointing at it) for the backe
 
 ## Offline machine-learning analysis
 
-Three notebooks at the repository root analyse a public intrusion-detection dataset (Kaggle, 25,192 labeled connections). They run in Google Colab or locally, independently of Docker:
+Four notebooks in `notebooks/` analyse a public intrusion-detection dataset (Kaggle, 25,192 labeled connections). They run in Google Colab or locally, independently of Docker:
+
+```
+notebooks/              the analysis notebooks (outputs saved inside: open them to see the results)
+data/                   Train_data.csv, Test_data.csv (downloaded automatically, not committed)
+results/                pair*_results.json: settings and every measured number
+results/predictions/    pair*_predictions.csv: one prediction per Test_data.csv row (not committed)
+scripts/run_analysis.py re-runs the notebooks and checks the results
+```
 
 | Notebook | Objective |
 |---|---|
-| `intrusion_analysis.ipynb` | Dataset audit and a first baseline |
-| `pair1_attack_classification.ipynb` | Detect attacks with labels (supervised classification) |
-| `pair2_anomaly_detection.ipynb` | Detect attacks without labels (anomaly detection) |
+| `notebooks/intrusion_analysis.ipynb` | Dataset audit and a first baseline |
+| `notebooks/pair1_attack_classification.ipynb` | Detect attacks with labels (supervised classification) |
+| `notebooks/pair2_anomaly_detection.ipynb` | Detect attacks without labels (anomaly detection) |
+| `notebooks/pair3_attack_profiling.ipynb` | Group attacks into families and map them to MITRE ATT&CK (clustering) |
 
-`python scripts/run_analysis.py` re-runs the Pair 1 and Pair 2 notebooks and checks their results against the reference values. Results: [docs/RESULTS_AND_ANALYSIS.md](docs/RESULTS_AND_ANALYSIS.md). Live demo: [docs/DEMO_GUIDE.md](docs/DEMO_GUIDE.md).
+`python scripts/run_analysis.py` re-runs the Pair 1, 2 and 3 notebooks and checks their results against the reference values. Results: [docs/RESULTS_AND_ANALYSIS.md](docs/RESULTS_AND_ANALYSIS.md). Live demo: [docs/DEMO_GUIDE.md](docs/DEMO_GUIDE.md).
 
 ## Related docs
 

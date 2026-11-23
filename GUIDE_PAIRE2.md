@@ -20,10 +20,10 @@ Temps nécessaire : environ 10 minutes pour l’exécuter et le vérifier, puis 
 
 | Fichier | À quoi il sert |
 |---|---|
-| `pair2_anomaly_detection.ipynb` | **Le notebook de la Paire 2.** Il est déjà exécuté : on peut le lire tel quel, graphiques compris. |
-| `Train_data.csv` | Données d’entraînement : 25 192 connexions réseau étiquetées (normal / anomaly). |
-| `Test_data.csv` | Données de test : 22 544 connexions sans étiquette. |
-| `pair2_predictions.csv` | Résultat produit par le notebook : un score d’anomalie par ligne de `Test_data.csv`. |
+| `notebooks/pair2_anomaly_detection.ipynb` | **Le notebook de la Paire 2.** Il est déjà exécuté : on peut le lire tel quel, graphiques compris. |
+| `data/Train_data.csv` | Données d’entraînement : 25 192 connexions réseau étiquetées (normal / anomaly). |
+| `data/Test_data.csv` | Données de test : 22 544 connexions sans étiquette. |
+| `results/predictions/pair2_predictions.csv` | Résultat produit par le notebook : un score d’anomalie par ligne de `Test_data.csv`. |
 | `results/pair2_results.json` | Les réglages et les résultats chiffrés, enregistrés par le notebook. |
 | `scripts/run_analysis.py` | Réexécute le notebook et vérifie les 24 chiffres clés. |
 | `scripts/expected_results.json` | Les chiffres de référence utilisés par cette vérification. |
@@ -101,7 +101,7 @@ Ensuite, à chaque fois, deux façons de travailler :
 
   ```powershell
   .venv\Scripts\Activate.ps1
-  jupyter notebook pair2_anomaly_detection.ipynb
+  jupyter notebook notebooks/pair2_anomaly_detection.ipynb
   ```
 
   Le navigateur s’ouvre. Pour exécuter une cellule, faites Maj + Entrée ; pour tout exécuter, utilisez le menu *Run › Run All Cells*.
@@ -178,8 +178,8 @@ Si vous préférez l’ajouter vous-mêmes sur GitHub (compte GitHub nécessaire
 git clone https://github.com/scriptsl0th/HoneyBadger.git
 cd HoneyBadger
 git checkout -b pair2-anomaly-detection
-# copiez ici pair2_anomaly_detection.ipynb et le dossier results\ (PAS les fichiers .csv)
-git add pair2_anomaly_detection.ipynb results/pair2_results.json
+# copiez pair2_anomaly_detection.ipynb dans notebooks\ et le dossier results\ (PAS les fichiers .csv)
+git add notebooks/pair2_anomaly_detection.ipynb results/pair2_results.json
 git commit -m "Add Pair 2 anomaly detection notebook"
 git push -u origin pair2-anomaly-detection
 ```
@@ -196,7 +196,7 @@ Le texte se trouve dans `docs/PRESENTATION_SCRIPT.md`, à la diapositive « Rés
 
 | Problème | Solution |
 |---|---|
-| `FileNotFoundError: Missing ['Train_data.csv', ...]` | Les CSV ne sont pas au bon endroit. Dans Colab, refaites l’étape 4. Sur PC, mettez-les dans le même dossier que le notebook. |
+| `FileNotFoundError: Missing ['Train_data.csv', ...]` | Les CSV ne sont pas au bon endroit. Dans Colab, refaites l’étape 4. Sur PC, mettez-les dans le dossier `data/` du dépôt. |
 | `ValueError: Train_data.csv differs from the reviewed Kaggle file` | Le fichier CSV a été modifié, par exemple ouvert puis enregistré dans Excel. Reprenez-le depuis le zip, **sans l’ouvrir dans Excel**. |
 | `ModuleNotFoundError` (sur PC) | L’environnement n’est pas activé : tapez `.venv\Scripts\Activate.ps1`, puis relancez. |
 | `python` n’est pas reconnu | Python n’a pas été ajouté au PATH : réinstallez-le en cochant « Add python.exe to PATH ». |

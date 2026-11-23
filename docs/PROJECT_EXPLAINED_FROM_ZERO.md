@@ -127,7 +127,7 @@ The honeypot has no labels: nobody marks its events "attack" or "normal". So the
 
 1. **Pair 1:** with labels, can a model recognise attacks? (classification)
 2. **Pair 2:** without labels, can a model that only learned normal traffic spot attacks? (anomaly detection)
-3. **Pair 3 (not started):** can attacks be grouped into families? (clustering)
+3. **Pair 3:** can attacks be grouped into families an analyst can name? (clustering)
 
 ---
 
@@ -152,9 +152,10 @@ HoneyBadger/
 ├── dashboard/               React dashboard
 ├── monitoring/              Prometheus, Grafana, Alertmanager configuration
 ├── tests/attack_scenarios.py  13 live attack scenarios against a running stack
-├── intrusion_analysis.ipynb, pair1_*.ipynb, pair2_*.ipynb   ML notebooks
+├── notebooks/               ML notebooks: intrusion_analysis, pair1, pair2, pair3
+├── data/                    Train_data.csv, Test_data.csv (downloaded, not committed)
 ├── scripts/run_analysis.py  re-runs the notebooks and checks the results
-├── results/                 settings and results saved by the notebooks
+├── results/                 settings and results saved by the notebooks; predictions/ for test-file outputs
 └── docs/                    this guide, demo, results, tests, presentation
 ```
 
@@ -175,9 +176,10 @@ HoneyBadger/
 | `backend/sim/simulate.py` | `build_attack()`, `run()` | Sends demo attacks and prints recorded techniques |
 | `dashboard/src/app.tsx` | `App` | The single-page console |
 | `dashboard/src/types.ts` | `EventOut`, `Stats`, `Timeseries` | The data contract with the API |
-| `pair1_attack_classification.ipynb` | sections 1–6 | Supervised models and evaluation |
-| `pair2_anomaly_detection.ipynb` | sections 1–6 | Novelty detection |
-| `scripts/run_analysis.py` | `main()` | Re-runs both notebooks, checks 50 numbers |
+| `notebooks/pair1_attack_classification.ipynb` | sections 1–6 | Supervised models and evaluation |
+| `notebooks/pair2_anomaly_detection.ipynb` | sections 1–6 | Novelty detection |
+| `notebooks/pair3_attack_profiling.ipynb` | sections 1–6 | Clustering attacks into families |
+| `scripts/run_analysis.py` | `main()` | Re-runs the three notebooks, checks 74 numbers |
 
 ### Files to open during the presentation
 
@@ -185,7 +187,7 @@ HoneyBadger/
 2. `backend/mitre.py`, function `classify()`: the rules, short and readable.
 3. `backend/sshd.py`, `hash_password()`: shows passwords are never stored in clear.
 4. The dashboard in the browser.
-5. `pair1_attack_classification.ipynb`, sections 4.2 and 4.6.
+5. `notebooks/pair1_attack_classification.ipynb`, sections 4.2 and 4.6.
 
 ### The main algorithms, step by step
 
@@ -203,6 +205,12 @@ HoneyBadger/
 3. The fewer cuts needed on average, the higher the anomaly score.
 
 **One-Class SVM (Pair 2).** Draw a flexible boundary around the normal training points; the further a point falls outside it, the more anomalous it is.
+
+**K-Means (Pair 3).**
+1. Place 6 centres among the attack rows.
+2. Assign every attack to its nearest centre.
+3. Move each centre to the average of its attacks; repeat steps 2–3 until nothing changes.
+4. Each final centre is an "average attack": high `serror_rate` with flag `S0` reads as a SYN flood, high `rerror_rate` as a port scan, and so on.
 
 ---
 
@@ -290,7 +298,7 @@ HoneyBadger/
 - Record bytes exchanged, session duration and connection outcome in HoneyBadger.
 - Make credential-attack classification use history per source IP.
 - Label a sample of real HoneyBadger sessions and evaluate on them with a time-based split.
-- Add the clustering objective (Pair 3) to name attack families.
+- Apply the Pair 3 attack families to HoneyBadger sessions and compare them with the technique the rules already assign.
 
 ### Using it in a real environment
 

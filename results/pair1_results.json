@@ -35,9 +35,9 @@
     }
   },
   "environment": {
-    "numpy": "2.5.3",
-    "pandas": "3.0.5",
-    "python": "3.13.18",
+    "numpy": "2.5.5",
+    "pandas": "3.1.1",
+    "python": "3.13.2",
     "scikit-learn": "1.9.1"
   },
   "feature_selection": {
@@ -81,7 +81,7 @@
       "recall": 0.9953
     }
   },
-  "notebook": "pair1_attack_classification.ipynb",
+  "notebook": "notebooks/pair1_attack_classification.ipynb",
   "test_predictions": {
     "predicted_anomaly": 8617,
     "rows": 22544

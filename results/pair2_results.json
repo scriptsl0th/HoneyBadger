@@ -35,9 +35,9 @@
     }
   },
   "environment": {
-    "numpy": "2.5.3",
-    "pandas": "3.0.5",
-    "python": "3.13.18",
+    "numpy": "2.5.5",
+    "pandas": "3.1.1",
+    "python": "3.13.2",
     "scikit-learn": "1.9.1"
   },
   "honeybadger_subset": {
@@ -60,7 +60,7 @@
       "recall at 1% FPR": 0.4593
     }
   },
-  "notebook": "pair2_anomaly_detection.ipynb",
+  "notebook": "notebooks/pair2_anomaly_detection.ipynb",
   "test_predictions": {
     "predicted_anomaly": 8301,
     "rows": 22544

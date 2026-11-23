@@ -50,7 +50,7 @@ Les diapositives correspondantes (15 diapositives, notes de l’orateur incluses
 
 **Transition.** « Comment y répondons-nous ? »
 
-**Questions possibles.** « L'objectif 3 est-il terminé ? » → Non : il est défini et confié à la troisième paire ; dis-le franchement.
+**Questions possibles.** « Pourquoi trois méthodes d'apprentissage ? » → Chacune répond à une situation différente : avec étiquettes, sans étiquettes, et pour nommer le type d'attaque une fois l'alerte levée.
 
 ---
 
@@ -84,7 +84,7 @@ Les diapositives correspondantes (15 diapositives, notes de l’orateur incluses
 
 ## 6. Technologies et méthodologie (1 min)
 
-**Diapositive.** Deux colonnes. Système : Python asyncio, asyncssh, aiohttp, PostgreSQL, React, Docker, Prometheus/Grafana. Analyse : pandas, scikit-learn, Google Colab ; séparation 80/20 sans fuite ; validation croisée ; métriques adaptées.
+**Diapositive.** Deux colonnes. Système : Python asyncio, asyncssh, aiohttp, PostgreSQL, React, Docker, Prometheus/Grafana. Analyse : pandas, scikit-learn, Google Colab ; séparation 80/20 sans fuite ; validation croisée ; métriques adaptées (y compris silhouette et stabilité pour le regroupement).
 
 **À dire.**
 « Côté système : Python asynchrone, asyncssh et aiohttp pour les faux services, PostgreSQL, React pour l'interface. Côté analyse : pandas et scikit-learn dans des notebooks exécutables sur Colab. Notre méthode évite la fuite de données : 20 % des connexions sont mises de côté et ne servent qu'une fois, les lignes identiques restent du même côté, et tout le prétraitement est appris sur l'entraînement seulement. »
@@ -132,28 +132,29 @@ Suivre `docs/DEMO_GUIDE.md`, partie A (étapes A2 à A5).
 
 ## 9. Résultats et évaluation (2 min)
 
-**Diapositive.** Deux tableaux.
+**Diapositive.** Trois tableaux.
 - Objectif 1 : forêt aléatoire, précision 1,000, rappel 0,996, F1 0,998 ; 2 339 attaques sur 2 349, 0 fausse alerte. Référence naïve : 0 attaque.
 - Objectif 2 : sans étiquettes, environ 84 % des attaques pour 1 % de fausses alertes (One-Class SVM 0,843, Isolation Forest 0,832) ; LOF rate toutes les attaques SYN flood.
-- Une ligne : avec seulement les variables de HoneyBadger : F1 0,984 (objectif 1), rappel 0,46 (objectif 2).
+- Objectif 3 : 5 familles d'attaques stables (SYN flood 60 %, scan de ports 22 %, balayage ICMP 8 %, flood ICMP/UDP 8 %, attaque après connexion 2 %), chacune avec une technique MITRE proposée ; stabilité ARI ≥ 0,97 sur la validation.
+- Une ligne : avec seulement les variables de HoneyBadger : F1 0,984 (objectif 1), rappel 0,46 (objectif 2), familles à moitié conservées (ARI 0,57, objectif 3).
 
 **À dire.**
-« Sur 5 039 connexions jamais vues, la forêt aléatoire attrape 2 339 attaques sur 2 349, sans aucune fausse alerte ; la référence naïve n'en attrape aucune. Ces chiffres sont reproduits à l'identique sur deux versions des bibliothèques. Sans étiquettes, en n'apprenant que le trafic normal, on attrape encore environ 84 % des attaques pour 1 % de fausses alertes : c'est le prix de l'absence d'étiquettes. Attention : ce jeu de données est connu pour être plus facile que le trafic réel ; ces scores montrent que la méthode fonctionne, pas que le problème est résolu. Le résultat le plus utile pour notre honeypot est celui-ci : avec seulement les informations qu'il enregistre aujourd'hui, la détection sans étiquettes tombe à 46 %. Il doit donc enregistrer les octets échangés et la façon dont chaque connexion se termine. »
+« Sur 5 039 connexions jamais vues, la forêt aléatoire attrape 2 339 attaques sur 2 349, sans aucune fausse alerte ; la référence naïve n'en attrape aucune. Ces chiffres sont reproduits à l'identique sur deux versions des bibliothèques. Sans étiquettes, en n'apprenant que le trafic normal, on attrape encore environ 84 % des attaques pour 1 % de fausses alertes : c'est le prix de l'absence d'étiquettes. Enfin, en regroupant les attaques sans étiquettes, on retrouve cinq familles qu'un analyste reconnaît : SYN floods, scans de ports, balayages et floods ICMP, et attaques après connexion sur le web. Trois algorithmes différents trouvent les mêmes groupes, et ils se retrouvent à l'identique sur des données jamais vues. Les noms MITRE restent des hypothèses, car le jeu ne dit pas le type d'attaque. Attention : ce jeu de données est connu pour être plus facile que le trafic réel ; ces scores montrent que la méthode fonctionne, pas que le problème est résolu. Le résultat le plus utile pour notre honeypot est celui-ci : avec seulement les informations qu'il enregistre aujourd'hui, la détection sans étiquettes tombe à 46 %. Il doit donc enregistrer les octets échangés et la façon dont chaque connexion se termine. »
 
 **À comprendre.** Précision, rappel, F1, ROC-AUC ; faux positif et faux négatif ; pourquoi l'exactitude seule ne suffit pas.
 
 **Transition.** « Pour finir, les limites et la suite. »
 
-**Questions possibles.** « 99,8 %, c'est trop beau ? » → `PROFESSOR_QA.md` n° 22.
+**Questions possibles.** « 99,8 %, c'est trop beau ? » → `PROFESSOR_QA.md` n° 22. « Comment avez-vous choisi le nombre de groupes ? » → `PROFESSOR_QA.md` n° 34.
 
 ---
 
 ## 10. Limites, améliorations et conclusion (1 min)
 
-**Diapositive.** Limites : jeu de données public et facile ; pas de SSH normal ; variables manquantes dans le honeypot ; définitions T1110 à trancher. Suite : enregistrer octets et fin de connexion ; collecter du vrai trafic ; objectif 3.
+**Diapositive.** Limites : jeu de données public et facile ; pas de SSH normal ; variables manquantes dans le honeypot ; définitions T1110 à trancher. Suite : enregistrer octets et fin de connexion ; collecter du vrai trafic ; appliquer les familles aux sessions du honeypot.
 
 **À dire.**
-« Nos limites : les modèles sont évalués sur un jeu public, pas sur notre honeypot ; ce jeu n'a aucune connexion SSH normale ; et il reste une question de définition entre force brute et credential stuffing, que nous avons documentée plutôt que masquée. La suite : enregistrer les octets et la fin des connexions, exposer le honeypot sur un vrai serveur, étiqueter un échantillon, et terminer le regroupement des attaques. En conclusion, HoneyBadger capture et explique les attaques sans risque, et notre analyse montre quelles informations il lui faut pour les reconnaître automatiquement. Merci, nous sommes prêts pour vos questions. »
+« Nos limites : les modèles sont évalués sur un jeu public, pas sur notre honeypot ; ce jeu n'a aucune connexion SSH normale ; et il reste une question de définition entre force brute et credential stuffing, que nous avons documentée plutôt que masquée. La suite : enregistrer les octets et la fin des connexions, exposer le honeypot sur un vrai serveur, étiqueter un échantillon, et appliquer nos familles d'attaques aux sessions du honeypot. En conclusion, HoneyBadger capture et explique les attaques sans risque, et notre analyse montre quelles informations il lui faut pour les reconnaître automatiquement. Merci, nous sommes prêts pour vos questions. »
 
 ---
 
@@ -163,6 +164,6 @@ Suivre `docs/DEMO_GUIDE.md`, partie A (étapes A2 à A5).
 
 HoneyBadger est un honeypot : un faux serveur SSH et un faux site web qui acceptent tout. Le shell est simulé : rien n'est exécuté, rien n'est téléchargé, et aucun mot de passe n'est stocké en clair. Chaque action est classée automatiquement selon MITRE ATT&CK, le vocabulaire des équipes de sécurité, et affichée en direct sur un tableau de bord. Tout démarre avec une seule commande Docker.
 
-Nous avons ensuite étudié si l'apprentissage automatique peut reconnaître les attaques, sur 25 000 connexions publiques étiquetées. Avec étiquettes, une forêt aléatoire attrape 99,6 % des attaques sans fausse alerte. Sans étiquettes, ce qui correspond à la situation réelle d'un honeypot, on en attrape encore environ 84 % pour 1 % de fausses alertes.
+Nous avons ensuite étudié si l'apprentissage automatique peut reconnaître les attaques, sur 25 000 connexions publiques étiquetées. Avec étiquettes, une forêt aléatoire attrape 99,6 % des attaques sans fausse alerte. Sans étiquettes, ce qui correspond à la situation réelle d'un honeypot, on en attrape encore environ 84 % pour 1 % de fausses alertes. Et en regroupant les attaques, on retrouve cinq familles stables (floods, scans, balayages, attaques après connexion) qu'un analyste sait nommer.
 
 Surtout, l'analyse montre ce qui manque au honeypot pour y arriver lui-même : enregistrer les octets échangés et la façon dont chaque connexion se termine. Le système a été testé de bout en bout : 97 tests automatiques, 10 scénarios d'attaque réussis sur 13, et des résultats reproduits à l'identique. »

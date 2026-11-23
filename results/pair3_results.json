@@ -1,0 +1,235 @@
+{
+  "config": {
+    "attack_rows": 11743,
+    "dbscan": {
+      "eps": 2.0,
+      "min_samples": 10
+    },
+    "fit_attack_rows": 9394,
+    "gmm_k": 6,
+    "kmeans_k": 6,
+    "pca_2d_variance": 0.4208,
+    "pca_components_for_90pct": 14,
+    "prepared_columns": 67,
+    "seed": 42,
+    "silhouette_sample": 3000,
+    "validation_attack_rows": 2349
+  },
+  "data": {
+    "Test_data.csv": {
+      "bytes": 2416180,
+      "sha256": "a58db8c605e58411f6432dd9ab2fe10e1d768f058f5453e9e279788c7219caf8"
+    },
+    "Train_data.csv": {
+      "bytes": 2875560,
+      "sha256": "1e40eb667611ab507870fc5b5ef0a844201ec094915d78d79f4665937e43b07a"
+    }
+  },
+  "environment": {
+    "numpy": "2.5.5",
+    "pandas": "3.1.1",
+    "python": "3.13.2",
+    "scikit-learn": "1.9.1"
+  },
+  "families": {
+    "0": {
+      "MITRE hypothesis": "T1499 Endpoint Denial of Service",
+      "family": "SYN flood",
+      "rows": 5619,
+      "share": 0.5981
+    },
+    "1": {
+      "MITRE hypothesis": "T1595 Active Scanning (also T1046)",
+      "family": "Port scan (refused connections)",
+      "rows": 2023,
+      "share": 0.2154
+    },
+    "2": {
+      "MITRE hypothesis": "T1595 Active Scanning (also T1018)",
+      "family": "ICMP host sweep",
+      "rows": 778,
+      "share": 0.0828
+    },
+    "3": {
+      "MITRE hypothesis": "T1498 Network Denial of Service",
+      "family": "ICMP/UDP flood",
+      "rows": 764,
+      "share": 0.0813
+    },
+    "4": {
+      "MITRE hypothesis": "T1190 Exploit Public-Facing Application / T1078 Valid Accounts",
+      "family": "Logged-in content attack",
+      "rows": 209,
+      "share": 0.0222
+    },
+    "5": {
+      "MITRE hypothesis": "too few rows to say",
+      "family": "Rare outlier",
+      "rows": 1,
+      "share": 0.0001
+    }
+  },
+  "honeybadger_subset": {
+    "All features": {
+      "ARI with full-feature families": 1.0,
+      "Calinski-Harabasz": 2552.7072,
+      "Davies-Bouldin": 0.8929,
+      "features": 39,
+      "silhouette": 0.5682
+    },
+    "HoneyBadger-compatible": {
+      "ARI with full-feature families": 0.5662,
+      "Calinski-Harabasz": 3918.766,
+      "Davies-Bouldin": 0.7401,
+      "features": 11,
+      "silhouette": 0.5374
+    }
+  },
+  "k_selection": {
+    "2": {
+      "Calinski-Harabasz": 2254.6537,
+      "Davies-Bouldin": 1.4917,
+      "GMM BIC": -630366.3092,
+      "inertia": 270288.7933,
+      "silhouette": 0.4884
+    },
+    "3": {
+      "Calinski-Harabasz": 2949.045,
+      "Davies-Bouldin": 1.3114,
+      "GMM BIC": -1477424.3146,
+      "inertia": 205873.914,
+      "silhouette": 0.5071
+    },
+    "4": {
+      "Calinski-Harabasz": 2824.2418,
+      "Davies-Bouldin": 1.1308,
+      "GMM BIC": -1590530.2699,
+      "inertia": 176193.1371,
+      "silhouette": 0.5386
+    },
+    "5": {
+      "Calinski-Harabasz": 2589.1893,
+      "Davies-Bouldin": 0.9104,
+      "GMM BIC": -1631649.0814,
+      "inertia": 159373.7024,
+      "silhouette": 0.5409
+    },
+    "6": {
+      "Calinski-Harabasz": 2552.7072,
+      "Davies-Bouldin": 0.8929,
+      "GMM BIC": -1615670.0884,
+      "inertia": 142049.7118,
+      "silhouette": 0.5682
+    },
+    "7": {
+      "Calinski-Harabasz": 2459.7786,
+      "Davies-Bouldin": 0.8188,
+      "GMM BIC": -1713916.4202,
+      "inertia": 130304.2688,
+      "silhouette": 0.5755
+    },
+    "8": {
+      "Calinski-Harabasz": 2421.1341,
+      "Davies-Bouldin": 0.7763,
+      "GMM BIC": -1777028.2013,
+      "inertia": 119463.6683,
+      "silhouette": 0.5907
+    },
+    "9": {
+      "Calinski-Harabasz": 2475.27,
+      "Davies-Bouldin": 0.6863,
+      "GMM BIC": -1665330.8658,
+      "inertia": 107773.8879,
+      "silhouette": 0.5929
+    },
+    "10": {
+      "Calinski-Harabasz": 2503.5031,
+      "Davies-Bouldin": 0.7731,
+      "GMM BIC": -1886408.497,
+      "inertia": 98550.1024,
+      "silhouette": 0.6006
+    }
+  },
+  "model_agreement_ari": {
+    "DBSCAN": {
+      "DBSCAN": 1.0,
+      "Gaussian Mixture": 0.8993,
+      "K-Means": 0.901
+    },
+    "Gaussian Mixture": {
+      "DBSCAN": 0.8993,
+      "Gaussian Mixture": 1.0,
+      "K-Means": 0.9681
+    },
+    "K-Means": {
+      "DBSCAN": 0.901,
+      "Gaussian Mixture": 0.9681,
+      "K-Means": 1.0
+    }
+  },
+  "model_comparison": {
+    "DBSCAN": {
+      "Calinski-Harabasz": 4513.823,
+      "Davies-Bouldin": 0.6189,
+      "clusters": 22,
+      "clusters under 1% of rows": 12,
+      "largest cluster share": 0.5914,
+      "noise share": 0.0226,
+      "silhouette": 0.5751
+    },
+    "Gaussian Mixture": {
+      "Calinski-Harabasz": 2475.9461,
+      "Davies-Bouldin": 0.952,
+      "clusters": 6,
+      "clusters under 1% of rows": 1,
+      "largest cluster share": 0.592,
+      "noise share": 0.0,
+      "silhouette": 0.5582
+    },
+    "K-Means": {
+      "Calinski-Harabasz": 2552.7072,
+      "Davies-Bouldin": 0.8929,
+      "clusters": 6,
+      "clusters under 1% of rows": 1,
+      "largest cluster share": 0.5981,
+      "noise share": 0.0,
+      "silhouette": 0.5682
+    }
+  },
+  "notebook": "notebooks/pair3_attack_profiling.ipynb",
+  "stability": {
+    "Gaussian Mixture, other seeds": {
+      "checks": 5,
+      "mean ARI": 0.8889,
+      "min ARI": 0.87
+    },
+    "K-Means, 80% subsamples": {
+      "checks": 10,
+      "mean ARI": 0.9872,
+      "min ARI": 0.9374
+    },
+    "K-Means, other seeds": {
+      "checks": 10,
+      "mean ARI": 0.9996,
+      "min ARI": 0.9986
+    },
+    "K-Means, validation partition": {
+      "checks": 1,
+      "mean ARI": 0.9685,
+      "min ARI": 0.9685
+    }
+  },
+  "test_predictions": {
+    "families": {
+      "ICMP host sweep": 473,
+      "ICMP/UDP flood": 1246,
+      "Logged-in content attack": 404,
+      "Port scan (refused connections)": 4664,
+      "Rare outlier": 3,
+      "SYN flood": 1799
+    },
+    "far_from_family_share": 0.0866,
+    "predicted_anomaly": 8589,
+    "rows": 22544
+  }
+}

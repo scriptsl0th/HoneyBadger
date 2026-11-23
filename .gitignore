@@ -60,12 +60,13 @@ Thumbs.db
 .DS_Store
 Desktop.ini
 
-# --- Offline analysis data (downloaded by intrusion_analysis.ipynb; Kaggle license listed as Unknown) ---
+# --- Offline analysis data (downloaded by the notebooks; Kaggle license listed as Unknown) ---
+# Layout: notebooks/*.ipynb, data/*.csv (raw + data/prepared/), results/*.json, results/predictions/*.csv
+data/*.csv
+data/prepared/
+results/predictions/*.csv
+# Same files if a notebook is run outside the repository layout (e.g. copied next to the CSVs)
 Train_data.csv
 Test_data.csv
-intrusion_predictions.csv
-pair1_predictions.csv
-train_prepared.csv
-validation_prepared.csv
-test_prepared.csv
-pair2_predictions.csv
+*_predictions.csv
+*_prepared.csv

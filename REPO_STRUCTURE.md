@@ -86,6 +86,22 @@ HoneyBadger/
 │       ├── metrics_fixture.py             # Dev-only synthetic metrics (:9101)
 │       └── README.md
 │
+├── notebooks/                             # Offline ML analysis (outputs saved inside)
+│   ├── intrusion_analysis.ipynb           # Dataset audit + first baseline
+│   ├── pair1_attack_classification.ipynb  # Objective 1: supervised detection
+│   ├── pair2_anomaly_detection.ipynb      # Objective 2: detection without labels
+│   └── pair3_attack_profiling.ipynb       # Objective 3: clustering attacks into families
+│
+├── data/                                  # Train_data.csv, Test_data.csv (not committed; see data/README.md)
+│
+├── results/
+│   ├── pair*_results.json                 # Settings and measured results per notebook
+│   └── predictions/                       # Test-file predictions (not committed)
+│
+├── scripts/
+│   ├── run_analysis.py                    # Re-runs the notebooks and checks the results
+│   └── expected_results.json              # Reference values
+│
 ├── docs/
 │   ├── ARCHITECTURE.md                    # Component map, data ownership, safety
 │   ├── ANALYSIS.md                        # Pointer to RESULTS_AND_ANALYSIS.md

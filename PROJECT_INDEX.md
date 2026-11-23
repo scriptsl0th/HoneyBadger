@@ -76,22 +76,24 @@ There is no per-event ground-truth label, byte count, session duration or sessio
 
 ## Where the offline analysis fits
 
-The offline analysis lives at the repository root and is separate from the running stack.
+The offline analysis lives in `notebooks/`, `data/` and `results/`, separate from the running stack.
 It needs neither Docker nor the honeypot services nor the attack simulator.
 
 | File | Role |
 |---|---|
-| `intrusion_analysis.ipynb` | Colab-ready notebook: data audit, grouped validation, baseline vs. random forest, predictions |
-| `Train_data.csv` | Kaggle labeled connections (25,192 rows, `class` = `normal`/`anomaly`) |
-| `Test_data.csv` | Kaggle unlabeled connections (22,544 rows, same 41 features, no `class`) |
-| `intrusion_predictions.csv` | Notebook output: one prediction per `Test_data.csv` row, original order |
-| `pair1_attack_classification.ipynb` | Group objective 1 (supervised attack detection): logistic regression, decision tree and random forest tuned with grouped cross-validation, threshold trade-off, interpretation, feature selection and a HoneyBadger-compatible feature subset |
-| `pair1_predictions.csv` | Output of the Pair 1 notebook: one prediction per `Test_data.csv` row, original order |
-| `train_prepared.csv`, `validation_prepared.csv`, `test_prepared.csv` | Pair 1 notebook output: the prepared data (constant columns dropped, one-hot encoding fitted on the training partition), with `source_row` back to the original CSV |
-| `pair2_anomaly_detection.ipynb` | Group objective 2 (detection without labels): Isolation Forest, One-Class SVM and Local Outlier Factor trained on normal traffic only, 1% false-alarm threshold. Siwar and Shayma |
-| `pair2_predictions.csv` | Output of the Pair 2 notebook: one anomaly score per `Test_data.csv` row, original order |
-| `results/pair1_results.json`, `results/pair2_results.json` | Settings and measured results saved by the notebooks |
-| `scripts/run_analysis.py`, `scripts/expected_results.json` | Re-runs both notebooks and checks 50 values against the reference |
+| `notebooks/intrusion_analysis.ipynb` | Colab-ready notebook: data audit, grouped validation, baseline vs. random forest, predictions |
+| `data/Train_data.csv` | Kaggle labeled connections (25,192 rows, `class` = `normal`/`anomaly`) |
+| `data/Test_data.csv` | Kaggle unlabeled connections (22,544 rows, same 41 features, no `class`) |
+| `results/predictions/intrusion_predictions.csv` | Notebook output: one prediction per `Test_data.csv` row, original order |
+| `notebooks/pair1_attack_classification.ipynb` | Group objective 1 (supervised attack detection): logistic regression, decision tree and random forest tuned with grouped cross-validation, threshold trade-off, interpretation, feature selection and a HoneyBadger-compatible feature subset |
+| `results/predictions/pair1_predictions.csv` | Output of the Pair 1 notebook: one prediction per `Test_data.csv` row, original order |
+| `data/prepared/train_prepared.csv`, `validation_prepared.csv`, `test_prepared.csv` | Pair 1 notebook output: the prepared data (constant columns dropped, one-hot encoding fitted on the training partition), with `source_row` back to the original CSV |
+| `notebooks/pair2_anomaly_detection.ipynb` | Group objective 2 (detection without labels): Isolation Forest, One-Class SVM and Local Outlier Factor trained on normal traffic only, 1% false-alarm threshold. Siwar and Shayma |
+| `results/predictions/pair2_predictions.csv` | Output of the Pair 2 notebook: one anomaly score per `Test_data.csv` row, original order |
+| `notebooks/pair3_attack_profiling.ipynb` | Group objective 3 (attack profiling): K-Means, Gaussian Mixture and DBSCAN on the attack rows only, k chosen by elbow, silhouette and Davies-Bouldin, stability checks, family profiles mapped to MITRE ATT&CK as hypotheses, HoneyBadger-compatible feature subset |
+| `results/predictions/pair3_predictions.csv` | Output of the Pair 3 notebook: for each `Test_data.csv` row, the predicted class and, for predicted attacks, the family and MITRE hypothesis (not committed) |
+| `results/pair1_results.json`, `results/pair2_results.json`, `results/pair3_results.json` | Settings and measured results saved by the notebooks |
+| `scripts/run_analysis.py`, `scripts/expected_results.json` | Re-runs the three pair notebooks and checks 74 values against the reference |
 | `requirements-analysis.txt` | Python packages for the notebooks and the runner |
 
 The data CSVs, the prepared CSVs and the predictions files are listed in `.gitignore`. The notebooks download or

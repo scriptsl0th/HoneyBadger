@@ -52,5 +52,31 @@
     "honeybadger_subset|HoneyBadger-compatible|recall at 1% FPR": 0.459,
     "test_predictions|rows": 22544,
     "test_predictions|predicted_anomaly": 8301
+  },
+  "pair3": {
+    "config|attack_rows": 11743,
+    "config|fit_attack_rows": 9394,
+    "config|validation_attack_rows": 2349,
+    "config|prepared_columns": 67,
+    "config|kmeans_k": 6,
+    "model_comparison|K-Means|silhouette": 0.568,
+    "model_comparison|K-Means|Davies-Bouldin": 0.893,
+    "model_comparison|Gaussian Mixture|silhouette": 0.558,
+    "model_comparison|DBSCAN|clusters": 22,
+    "model_agreement_ari|K-Means|Gaussian Mixture": 0.968,
+    "model_agreement_ari|K-Means|DBSCAN": 0.901,
+    "stability|K-Means, other seeds|min ARI": 0.999,
+    "stability|K-Means, validation partition|min ARI": 0.969,
+    "families|0|family": "SYN flood",
+    "families|0|rows": 5619,
+    "families|1|family": "Port scan (refused connections)",
+    "families|1|rows": 2023,
+    "families|2|family": "ICMP host sweep",
+    "families|3|family": "ICMP/UDP flood",
+    "families|4|family": "Logged-in content attack",
+    "families|4|rows": 209,
+    "honeybadger_subset|HoneyBadger-compatible|ARI with full-feature families": 0.566,
+    "test_predictions|rows": 22544,
+    "test_predictions|predicted_anomaly": 8589
   }
 }

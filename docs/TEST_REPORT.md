@@ -122,12 +122,14 @@ pip install -r requirements-analysis.txt
 python scripts/run_analysis.py
 ```
 
-The script executes `pair1_attack_classification.ipynb` and `pair2_anomaly_detection.ipynb`, reads `results/pair1_results.json` and `results/pair2_results.json`, and compares 50 key numbers with `scripts/expected_results.json`. Those reference values are the numbers reported to the group before this run.
+The script executes `notebooks/pair1_attack_classification.ipynb`, `pair2_anomaly_detection.ipynb` and `pair3_attack_profiling.ipynb` (from inside `notebooks/`), reads their `results/pair*_results.json` files, and compares 74 key numbers with `scripts/expected_results.json`. Those reference values are the numbers reported to the group before this run.
 
 | Environment | Pair 1 | Pair 2 | Run time |
 |---|---|---|---|
 | pandas 3.0.5, scikit-learn 1.9.1 | 26/26 | 24/24 | 68 s + 20 s |
 | pandas 2.2.3, scikit-learn 1.6.1 (Colab-like) | 26/26 | 24/24 | 80 s + 19 s |
+
+Pair 3 was added later and checked with pandas 3.1.1, scikit-learn 1.9.1, Python 3.13: 24/24 checks, about 160 s, identical numbers on two consecutive runs. It has not yet been run with scikit-learn 1.6.
 
 In Google Colab, only `intrusion_analysis.ipynb` has been run so far (2026-11-19, identical results). The Pair 1 and Pair 2 notebooks have not been checked in Colab itself; the second environment above uses the same library versions as Colab.
 
